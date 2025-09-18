@@ -227,5 +227,6 @@ export default function StocksPage() {
         )}
       </div>
     </LayoutSimple>
+    </AuthGuard>
   )
 }

@@ -68,7 +68,7 @@ export default function CropsPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -294,6 +294,6 @@ export default function CropsPage() {
           </div>
         )}
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

@@ -1703,27 +1703,6 @@ export function useDeleteFinancialTransaction() {
 }
 
 
-export function useBudgets(params?: any) {
-  const isAuthenticated = useAuthGlobal()
-  
-  return useQuery({
-    queryKey: ["budgets", params],
-    queryFn: () => getBudgets(params),
-    enabled: isAuthenticated,
-  })
-}
-
-export function useCreateBudget() {
-  const queryClient = useQueryClient()
-  
-  return useMutation({
-    mutationFn: createBudget,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["budgets"] })
-      queryClient.invalidateQueries({ queryKey: ["financial-alerts"] })
-    },
-  })
-}
 
 export function useUpdateBudget() {
   const queryClient = useQueryClient()

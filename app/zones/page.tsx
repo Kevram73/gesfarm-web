@@ -165,7 +165,7 @@ export default function ZonesPage() {
   }))
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -371,6 +371,6 @@ export default function ZonesPage() {
         isLoading={deleteZoneMutation.isPending}
         variant="destructive"
       />
-    </Layout>
+    </LayoutSimple>
   )
 }
