@@ -47,8 +47,8 @@ export default function StocksPage() {
   return (
     <AuthGuard>
       <Layout>
-      <div className="space-y-6">
-        {/* Header */}
+        <div className="space-y-6">
+          {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">Gestion des Stocks</h1>
@@ -230,7 +230,8 @@ export default function StocksPage() {
             </div>
           </div>
         )}
-      </div>
-    </Layout>
+        </div>
+      </Layout>
+    </AuthGuard>
   )
 }
