@@ -1,9 +1,9 @@
 "use client"
 
 import { AuthGuard } from "@/lib/components/auth/auth-guard"
-import { Layout } from "@/lib/components/layout"
-import { MetricCard, Chart, RecentActivity } from "@/lib/components/dashboard"
-import { useDashboardKPIs, useStockAlerts, usePoultryStats, useCattleStats, useCropStats, useTaskStats } from "@/lib/hooks/use-api-data"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
+import { MetricCard } from "@/lib/components/dashboard"
+import { useDashboardKPIs, useStockAlerts, useFinancialSummary, useFinancialAlerts } from "@/lib/hooks/use-api-data"
 import { 
   Users, 
   DollarSign, 
@@ -18,17 +18,17 @@ import {
 } from "lucide-react"
 
 export default function DashboardPage() {
-  const { data: kpis, isLoading: kpisLoading } = useDashboardKPIs()
-  const { data: stockAlerts } = useStockAlerts()
-  const { data: poultryStats } = usePoultryStats()
-  const { data: cattleStats } = useCattleStats()
-  const { data: cropStats } = useCropStats()
-  const { data: taskStats } = useTaskStats()
+  // Les hooks retournent maintenant directement les données sans erreur
+  const { data: dashboardData, isLoading: kpisLoading } = useDashboardKPIs()
+  const { data: alertsData, isLoading: stockAlertsLoading } = useStockAlerts()
+  const { data: financialData } = useFinancialSummary({ period: 'month' })
+  const { data: financialAlerts } = useFinancialAlerts()
 
+  // Chargement principal basé sur les KPIs
   if (kpisLoading) {
     return (
       <AuthGuard>
-        <Layout>
+        <LayoutSimple>
           <div className="space-y-6">
             <div className="mb-8">
               <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard Ferme</h1>
@@ -42,14 +42,14 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-        </Layout>
+        </LayoutSimple>
       </AuthGuard>
     )
   }
 
   return (
     <AuthGuard>
-      <Layout>
+      <LayoutSimple>
         <div className="space-y-6">
           {/* Header */}
           <div className="mb-8">
@@ -68,11 +68,9 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm opacity-90">Volailles</p>
                 <p className="text-2xl font-bold">
-                  {poultryStats?.total_birds?.toLocaleString() || kpis?.total_poultry?.toLocaleString() || "0"}
+                  {dashboardData.total_poultry?.toLocaleString() || "0"}
                 </p>
-                <p className="text-xs opacity-75">
-                  {poultryStats?.active_flocks ? `${poultryStats.active_flocks} troupeaux actifs` : "Total des volailles en élevage"}
-                </p>
+                <p className="text-xs opacity-75">Total des volailles en élevage</p>
               </div>
               <Egg className="h-8 w-8 opacity-80" />
             </div>
@@ -83,11 +81,9 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Bovins</p>
                   <p className="text-2xl font-bold">
-                    {cattleStats?.total_cattle?.toLocaleString() || kpis?.total_cattle?.toLocaleString() || "0"}
+                    {dashboardData.total_cattle?.toLocaleString() || "0"}
                   </p>
-                  <p className="text-xs opacity-75">
-                    {cattleStats?.average_weight ? `Poids moyen: ${cattleStats.average_weight}kg` : "Troupeau bovin total"}
-                  </p>
+                  <p className="text-xs opacity-75">Troupeau bovin total</p>
                 </div>
                 <Milk className="h-8 w-8 opacity-80" />
               </div>
@@ -98,11 +94,9 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Cultures</p>
                   <p className="text-2xl font-bold">
-                    {cropStats?.total_crops?.toLocaleString() || kpis?.total_crops?.toLocaleString() || "0"}
+                    {dashboardData.total_crops?.toLocaleString() || "0"}
                   </p>
-                  <p className="text-xs opacity-75">
-                    {cropStats?.total_area ? `Surface: ${cropStats.total_area} ha` : "Parcelles en culture"}
-                  </p>
+                  <p className="text-xs opacity-75">Parcelles en culture</p>
                 </div>
                 <Wheat className="h-8 w-8 opacity-80" />
               </div>
@@ -111,15 +105,13 @@ export default function DashboardPage() {
             <div className="gradient-stock p-4 rounded-lg text-white">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm opacity-90">Tâches</p>
+                  <p className="text-sm opacity-90">Zones</p>
                   <p className="text-2xl font-bold">
-                    {taskStats?.pending_tasks?.toLocaleString() || kpis?.total_zones?.toLocaleString() || "0"}
+                    {dashboardData.total_zones?.toLocaleString() || "0"}
                   </p>
-                  <p className="text-xs opacity-75">
-                    {taskStats?.completed_today ? `${taskStats.completed_today} terminées aujourd'hui` : "Tâches en attente"}
-                  </p>
+                  <p className="text-xs opacity-75">Zones de l'exploitation</p>
                 </div>
-                <Activity className="h-8 w-8 opacity-80" />
+                <MapPin className="h-8 w-8 opacity-80" />
               </div>
             </div>
           </div>
@@ -131,11 +123,9 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Œufs collectés</p>
                   <p className="text-2xl font-bold">
-                    {poultryStats?.eggs_today?.toLocaleString() || kpis?.production_summary?.eggs_today?.toLocaleString() || "0"}
+                    {dashboardData.production_summary?.eggs_today?.toLocaleString() || "0"}
                   </p>
-                  <p className="text-xs opacity-75">
-                    {poultryStats?.avg_daily_production ? `Moyenne: ${poultryStats.avg_daily_production}/jour` : "Production d'œufs du jour"}
-                  </p>
+                  <p className="text-xs opacity-75">Production d'œufs du jour</p>
                 </div>
                 <Egg className="h-8 w-8 opacity-80" />
               </div>
@@ -146,25 +136,23 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Lait produit</p>
                   <p className="text-2xl font-bold">
-                    {cattleStats?.milk_today?.toLocaleString() || kpis?.production_summary?.milk_today || 0} L
+                    {dashboardData.production_summary?.milk_today || 0} L
                   </p>
-                  <p className="text-xs opacity-75">
-                    {cattleStats?.avg_daily_milk ? `Moyenne: ${cattleStats.avg_daily_milk}L/jour` : "Production laitière du jour"}
-                  </p>
+                  <p className="text-xs opacity-75">Production laitière du jour</p>
                 </div>
                 <Milk className="h-8 w-8 opacity-80" />
               </div>
             </div>
             
             <div className={`p-4 rounded-lg text-white ${
-              stockAlerts?.length > 0 
+              (alertsData?.length || 0) > 0 
                 ? "bg-gradient-to-r from-red-400 to-red-500" 
                 : "bg-gradient-to-r from-green-400 to-green-500"
             }`}>
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90">Alertes Stock</p>
-                  <p className="text-2xl font-bold">{stockAlerts?.length?.toString() || "0"}</p>
+                  <p className="text-2xl font-bold">{alertsData?.length?.toString() || "0"}</p>
                   <p className="text-xs opacity-75">Articles en rupture ou expirés</p>
                 </div>
                 <AlertTriangle className="h-8 w-8 opacity-80" />
@@ -172,38 +160,52 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Charts Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
-            <div className="col-span-4">
-              <Chart
-                title="Production Avicole"
-                description="Évolution de la production d'œufs sur 30 jours"
-                type="area"
-                dataKey="eggs"
-              />
+          {/* Section résumé simplifiée */}
+          <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+            <h2 className="text-2xl font-light text-gray-900 mb-6">Résumé de l'exploitation</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="p-6 bg-gray-50 rounded-xl">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Production du jour</h3>
+                <p className="text-gray-600">
+                  Œufs collectés : <span className="font-medium">{dashboardData.production_summary?.eggs_today?.toLocaleString() || "0"}</span>
+                </p>
+                <p className="text-gray-600">
+                  Lait produit : <span className="font-medium">{dashboardData.production_summary?.milk_today || 0} L</span>
+                </p>
+              </div>
+              <div className="p-6 bg-gray-50 rounded-xl">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">État des stocks</h3>
+                <p className="text-gray-600">
+                  Alertes actives : <span className="font-medium text-red-600">{alertsData?.length || 0}</span>
+                </p>
+                <p className="text-gray-600">
+                  Articles en stock : <span className="font-medium">{dashboardData.total_stock_items || 0}</span>
+                </p>
+              </div>
+              <div className="p-6 bg-gray-50 rounded-xl">
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Situation financière</h3>
+                <p className="text-gray-600">
+                  Revenus mensuels : <span className="font-medium text-green-600">
+                    {financialData?.monthly_income ? `${financialData.monthly_income.toLocaleString()} FCFA` : "0 FCFA"}
+                  </span>
+                </p>
+                <p className="text-gray-600">
+                  Dépenses mensuelles : <span className="font-medium text-red-600">
+                    {financialData?.monthly_expenses ? `${financialData.monthly_expenses.toLocaleString()} FCFA` : "0 FCFA"}
+                  </span>
+                </p>
+                <p className="text-gray-600">
+                  Bénéfice : <span className={`font-medium ${
+                    (financialData?.monthly_profit || 0) >= 0 ? 'text-green-600' : 'text-red-600'
+                  }`}>
+                    {financialData?.monthly_profit ? `${financialData.monthly_profit.toLocaleString()} FCFA` : "0 FCFA"}
+                  </span>
+                </p>
+              </div>
             </div>
-            <div className="col-span-3">
-              <RecentActivity />
-            </div>
-          </div>
-
-          {/* Additional Charts */}
-          <div className="grid gap-4 md:grid-cols-2">
-            <Chart
-              title="Production Laitière"
-              description="Production laitière par animal"
-              type="bar"
-              dataKey="milk"
-            />
-            <Chart
-              title="Consommation Alimentaire"
-              description="Consommation d'aliments par type"
-              type="line"
-              dataKey="feed"
-            />
           </div>
         </div>
-      </Layout>
+      </LayoutSimple>
     </AuthGuard>
   )
 }

@@ -15,11 +15,13 @@ import {
   Egg,
   Milk,
   Wheat,
-  User
+  User,
+  DollarSign
 } from "lucide-react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
+  { name: "Finances", href: "/financial", icon: DollarSign },
   { name: "Stocks", href: "/stocks", icon: Package },
   { name: "Volailles", href: "/poultry", icon: Egg },
   { name: "Bovins", href: "/cattle", icon: Milk },

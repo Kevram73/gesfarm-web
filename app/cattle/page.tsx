@@ -1,7 +1,7 @@
 "use client"
 
 import { AuthGuard } from "@/lib/components/auth/auth-guard"
-import { Layout } from "@/lib/components/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
@@ -30,30 +30,23 @@ export default function CattlePage() {
 
   if (isLoading) {
     return (
-      <Layout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestion Bovine</h1>
-            <p className="text-gray-600 mt-2">
-              Chargement du troupeau...
-            </p>
+      <AuthGuard>
+        <LayoutSimple>
+          <div className="min-h-screen bg-gray-50 py-8">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+              <div className="text-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-600 mx-auto mb-4"></div>
+                <h2 className="text-2xl font-light text-gray-900 mb-2">Chargement du troupeau</h2>
+                <p className="text-gray-500">Veuillez patienter...</p>
+              </div>
+            </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-48 bg-gray-200 rounded-lg animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-      </Layout>
+        </LayoutSimple>
+      </AuthGuard>
     )
   }
 
   const cattle = cattleData?.data || []
-  
-  // Debug: Log des données pour vérifier
-  console.log("Cattle data:", cattleData)
-  console.log("Cattle array:", cattle)
-  console.log("First cattle weight:", cattle[0]?.current_weight, typeof cattle[0]?.current_weight)
 
   const getGenderLabel = (gender: string) => {
     return gender === "female" ? "Femelle" : "Mâle"
@@ -93,236 +86,201 @@ export default function CattlePage() {
 
   return (
     <AuthGuard>
-      <Layout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestion Bovine</h1>
-            <p className="text-gray-600 mt-2">
-              Suivi du troupeau bovin et de la production laitière.
-            </p>
-          </div>
-          <Button onClick={() => router.push("/cattle/add")}>
-            <Plus className="mr-2 h-4 w-4" />
-            Ajouter un animal
-          </Button>
-        </div>
-
-        {/* Statistiques rapides */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Bovins</CardTitle>
-              <Milk className="h-4 w-4 text-gray-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {cattle.length}
+      <LayoutSimple>
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            
+            {/* Header simplifié */}
+            <div className="mb-12">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h1 className="text-4xl font-light text-gray-900">Troupeau Bovin</h1>
+                  <p className="text-gray-500 mt-3 text-lg">
+                    {cattle.length} animaux enregistrés
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => router.push("/cattle/add")}
+                  className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg"
+                >
+                  <Plus className="mr-2 h-5 w-5" />
+                  Ajouter un animal
+                </Button>
               </div>
-              <p className="text-xs text-gray-600">
-                Animaux enregistrés
-              </p>
-            </CardContent>
-          </Card>
+            </div>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Femelles</CardTitle>
-              <Weight className="h-4 w-4 text-pink-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {cattle.filter(animal => animal.gender === "female").length}
+            {/* Statistiques simplifiées */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+              <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+                <div className="flex items-center">
+                  <div className="p-3 bg-pink-100 rounded-full">
+                    <Weight className="h-6 w-6 text-pink-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-3xl font-light text-gray-900">
+                      {cattle.filter(animal => animal.gender === "female").length}
+                    </p>
+                    <p className="text-gray-500">Femelles</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-600">
-                Vaches laitières
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Mâles</CardTitle>
-              <Calendar className="h-4 w-4 text-blue-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {cattle.filter(animal => animal.gender === "male").length}
+              <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+                <div className="flex items-center">
+                  <div className="p-3 bg-blue-100 rounded-full">
+                    <Calendar className="h-6 w-6 text-blue-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-3xl font-light text-gray-900">
+                      {cattle.filter(animal => animal.gender === "male").length}
+                    </p>
+                    <p className="text-gray-500">Mâles</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-600">
-                Taureaux et bœufs
-              </p>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Poids Moyen</CardTitle>
-              <Weight className="h-4 w-4 text-green-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {(() => {
-                  if (cattle.length === 0) return "0 kg"
-                  
-                  const totalWeight = cattle.reduce((sum, animal) => {
-                    const weight = parseFloat(animal.current_weight) || 0
-                    console.log(`Animal ${animal.name}: weight=${animal.current_weight}, parsed=${weight}`)
-                    return sum + weight
-                  }, 0)
-                  
-                  const average = Math.round(totalWeight / cattle.length)
-                  console.log(`Total weight: ${totalWeight}, Average: ${average}`)
-                  
-                  return `${average} kg`
-                })()}
+              <div className="bg-white rounded-xl p-8 shadow-sm border border-gray-100">
+                <div className="flex items-center">
+                  <div className="p-3 bg-green-100 rounded-full">
+                    <Weight className="h-6 w-6 text-green-600" />
+                  </div>
+                  <div className="ml-4">
+                    <p className="text-3xl font-light text-gray-900">
+                      {(() => {
+                        if (cattle.length === 0) return "0"
+                        const totalWeight = cattle.reduce((sum, animal) => {
+                          const weight = parseFloat(String(animal.current_weight)) || 0
+                          return sum + weight
+                        }, 0)
+                        const average = Math.round(totalWeight / cattle.length)
+                        return `${average}`
+                      })()} kg
+                    </p>
+                    <p className="text-gray-500">Poids moyen</p>
+                  </div>
+                </div>
               </div>
-              <p className="text-xs text-gray-600">
-                Poids moyen du troupeau
-              </p>
-            </CardContent>
-          </Card>
-        </div>
+            </div>
 
-        {/* Recherche et filtres */}
-        <Card>
-          <CardContent className="pt-6">
-            <div className="flex items-center space-x-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+            {/* Recherche simplifiée */}
+            <div className="mb-8">
+              <div className="relative max-w-md">
+                <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                 <Input
                   placeholder="Rechercher un animal..."
-                  className="pl-9"
+                  className="pl-12 py-4 text-lg border-gray-200 rounded-xl focus:border-green-500 focus:ring-green-500"
                 />
               </div>
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtrer
-              </Button>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Liste des bovins */}
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {cattle.map((animal) => {
-            const ageInMonths = calculateAge(animal.birth_date)
-            const ageYears = Math.floor(ageInMonths / 12)
-            const ageMonths = ageInMonths % 12
-            
-            return (
-              <Card key={animal.id} className="hover:shadow-md transition-shadow">
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-2">
-                      <Milk className="h-5 w-5 text-gray-500" />
-                      <CardTitle className="text-lg">{animal.tag_number}</CardTitle>
-                    </div>
-                    <Badge className={`${getGenderColor(animal.gender)} text-white`}>
-                      {getGenderLabel(animal.gender)}
-                    </Badge>
-                  </div>
-                  <p className="text-sm text-gray-600">
-                    {animal.name && `${animal.name} • `}{animal.breed}
-                  </p>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Poids actuel:</span>
-                      <span className="font-medium text-gray-900">
-                        {animal.current_weight ? `${animal.current_weight} kg` : "Non pesé"}
-                      </span>
-                    </div>
+            {/* Liste des bovins simplifiée */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {cattle.map((animal) => {
+                const ageInMonths = calculateAge(animal.birth_date)
+                const ageYears = Math.floor(ageInMonths / 12)
+                const ageMonths = ageInMonths % 12
+                
+                return (
+                  <div key={animal.id} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100 hover:shadow-md transition-all duration-200">
                     
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Âge:</span>
-                      <span className="text-gray-900">
-                        {ageYears > 0 ? `${ageYears} an${ageYears > 1 ? 's' : ''}` : ''}
-                        {ageYears > 0 && ageMonths > 0 ? ' et ' : ''}
-                        {ageMonths > 0 ? `${ageMonths} mois` : ''}
-                        {ageYears === 0 && ageMonths === 0 ? 'Nouveau-né' : ''}
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Zone:</span>
-                      <span className="text-gray-900 text-sm">
-                        {animal.zone?.name || "Non assignée"}
-                      </span>
-                    </div>
-                    
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Date de naissance:</span>
-                      <span className="text-gray-900 text-sm">
-                        {new Date(animal.birth_date).toLocaleDateString("fr-FR")}
-                      </span>
-                    </div>
-                    
-                    {animal.gender === "female" && (
-                      <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Production:</span>
-                        <span className="text-green-600 font-medium">
-                          Laitière
+                    {/* Header de la carte */}
+                    <div className="mb-6">
+                      <div className="flex items-center justify-between mb-3">
+                        <h3 className="text-xl font-medium text-gray-900">{animal.tag_number}</h3>
+                        <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                          animal.gender === "female" 
+                            ? "bg-pink-100 text-pink-700" 
+                            : "bg-blue-100 text-blue-700"
+                        }`}>
+                          {getGenderLabel(animal.gender)}
                         </span>
                       </div>
-                    )}
-                    
+                      <p className="text-gray-600 text-lg">
+                        {animal.name && `${animal.name} • `}{animal.breed}
+                      </p>
+                    </div>
+
+                    {/* Informations principales */}
+                    <div className="space-y-4 mb-8">
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-gray-500">Poids</span>
+                        <span className="font-medium text-gray-900">
+                          {animal.current_weight ? `${animal.current_weight} kg` : "Non pesé"}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-gray-500">Âge</span>
+                        <span className="text-gray-900">
+                          {ageYears > 0 ? `${ageYears} an${ageYears > 1 ? 's' : ''}` : ''}
+                          {ageYears > 0 && ageMonths > 0 ? ' et ' : ''}
+                          {ageMonths > 0 ? `${ageMonths} mois` : ''}
+                          {ageYears === 0 && ageMonths === 0 ? 'Nouveau-né' : ''}
+                        </span>
+                      </div>
+                      
+                      <div className="flex justify-between items-center py-2">
+                        <span className="text-gray-500">Zone</span>
+                        <span className="text-gray-900">
+                          {(animal as any).zone?.name || "Non assignée"}
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Notes si présentes */}
                     {animal.notes && (
-                      <div className="pt-2 border-t">
-                        <p className="text-xs text-gray-600 italic">
+                      <div className="mb-6 p-4 bg-gray-50 rounded-xl">
+                        <p className="text-sm text-gray-600 italic">
                           {animal.notes}
                         </p>
                       </div>
                     )}
-                    
-                    <div className="pt-2 flex space-x-2">
+
+                    {/* Actions */}
+                    <div className="flex space-x-3">
                       <Button 
                         variant="outline" 
-                        size="sm" 
-                        className="flex-1"
+                        className="flex-1 py-3 border-gray-200 hover:border-green-500 hover:text-green-600"
                         onClick={() => router.push(`/cattle/details/${animal.id}`)}
                       >
                         Détails
                       </Button>
                       <Button 
                         variant="outline" 
-                        size="sm" 
-                        className="flex-1"
+                        className="flex-1 py-3 border-gray-200 hover:border-blue-500 hover:text-blue-600"
                         onClick={() => router.push(`/cattle/edit/${animal.id}`)}
                       >
                         Modifier
                       </Button>
                       <Button 
                         variant="outline" 
-                        size="sm" 
-                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        className="px-4 py-3 border-gray-200 hover:border-red-500 hover:text-red-600"
                         onClick={() => openDeleteDialog(animal.id, animal.name || animal.tag_number)}
                       >
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                </CardContent>
-              </Card>
-            )
-          })}
-        </div>
-
-        {/* Pagination */}
-        {cattleData?.pagination && cattleData.pagination.last_page > 1 && (
-          <div className="flex justify-center">
-            <div className="flex space-x-2">
-              <Button variant="outline" size="sm">
-                Précédent
-              </Button>
-              <Button variant="outline" size="sm">
-                Suivant
-              </Button>
+                )
+              })}
             </div>
+
+            {/* Pagination simplifiée */}
+            {(cattleData as any)?.pagination && (cattleData as any).pagination.last_page > 1 && (
+              <div className="mt-12 flex justify-center">
+                <div className="flex space-x-3">
+                  <Button variant="outline" className="px-6 py-3 rounded-xl">
+                    Précédent
+                  </Button>
+                  <Button variant="outline" className="px-6 py-3 rounded-xl">
+                    Suivant
+                  </Button>
+                </div>
+              </div>
+            )}
+
           </div>
-        )}
+        </div>
 
         {/* Dialogue de confirmation de suppression */}
         <ConfirmDialog
@@ -336,8 +294,7 @@ export default function CattlePage() {
           isLoading={deleteCattleMutation.isPending}
           variant="destructive"
         />
-      </div>
-      </Layout>
+      </LayoutSimple>
     </AuthGuard>
   )
 }
