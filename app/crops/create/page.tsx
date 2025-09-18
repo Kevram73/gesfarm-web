@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Layout } from "@/lib/components/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Input } from "@/lib/components/ui/input"
@@ -100,7 +100,7 @@ export default function CreateCropPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -303,6 +303,6 @@ export default function CreateCropPage() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

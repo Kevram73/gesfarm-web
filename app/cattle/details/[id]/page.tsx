@@ -113,7 +113,7 @@ export default function CattleDetailsPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -312,6 +312,6 @@ export default function CattleDetailsPage() {
           variant="destructive"
         />
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

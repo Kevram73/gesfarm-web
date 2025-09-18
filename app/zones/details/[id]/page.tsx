@@ -84,18 +84,18 @@ export default function ZoneDetailsPage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <LayoutSimple>
         <div className="flex items-center justify-center h-64">
           <Loader2 className="h-8 w-8 animate-spin" />
         </div>
-      </Layout>
+      </LayoutSimple>
     )
   }
 
   const zone = zonesData?.data?.find(z => z.id === zoneId)
   if (!zone) {
     return (
-      <Layout>
+      <LayoutSimple>
         <div className="text-center py-12">
           <h1 className="text-2xl font-bold text-gray-900">Zone non trouvée</h1>
           <p className="text-gray-600 mt-2">La zone demandée n'existe pas.</p>
@@ -103,7 +103,7 @@ export default function ZoneDetailsPage() {
             Retour aux zones
           </Button>
         </div>
-      </Layout>
+      </LayoutSimple>
     )
   }
 
@@ -119,7 +119,7 @@ export default function ZoneDetailsPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -302,6 +302,6 @@ export default function ZoneDetailsPage() {
         isLoading={deleteZoneMutation.isPending}
         variant="destructive"
       />
-    </Layout>
+    </LayoutSimple>
   )
 }

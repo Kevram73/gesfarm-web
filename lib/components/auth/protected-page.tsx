@@ -1,7 +1,7 @@
 "use client"
 
 import { AuthGuard } from "./auth-guard"
-import { Layout } from "../layout/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 
 interface ProtectedPageProps {
   children: React.ReactNode
@@ -12,7 +12,7 @@ interface ProtectedPageProps {
 export function ProtectedPage({ children, title, description }: ProtectedPageProps) {
   return (
     <AuthGuard>
-      <Layout>
+      <LayoutSimple>
         {title && (
           <div className="mb-8">
             <h1 className="text-3xl font-bold tracking-tight text-white">{title}</h1>
@@ -22,7 +22,7 @@ export function ProtectedPage({ children, title, description }: ProtectedPagePro
           </div>
         )}
         {children}
-      </Layout>
+      </LayoutSimple>
     </AuthGuard>
   )
 }

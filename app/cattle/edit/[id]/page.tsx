@@ -180,7 +180,7 @@ export default function EditCattlePage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -392,6 +392,6 @@ export default function EditCattlePage() {
           </div>
         </form>
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }
