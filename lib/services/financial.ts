@@ -1,18 +1,17 @@
 import api from "./api"
 
-export interface Transaction {
+// ===== TYPES FINANCIERS =====
+export interface FinancialTransaction {
   id: number
-  type: "income" | "expense" | "transfer"
+  type: 'income' | 'expense'
   category: string
-  description: string
+  subcategory?: string
   amount: number
-  currency: string
-  transaction_date: string
-  payment_method: "cash" | "bank_transfer" | "check" | "mobile_money" | "other"
-  reference_number?: string
-  related_entity_type?: "crop" | "cattle" | "poultry" | "stock" | "zone"
+  description: string
+  date: string
+  reference?: string
+  related_entity_type?: 'cattle' | 'poultry' | 'crops' | 'stock' | 'veterinary'
   related_entity_id?: number
-  notes?: string
   created_at: string
   updated_at: string
 }
@@ -21,70 +20,87 @@ export interface Budget {
   id: number
   name: string
   category: string
-  allocated_amount: number
-  spent_amount: number
-  remaining_amount: number
-  period_start: string
-  period_end: string
-  status: "active" | "completed" | "cancelled"
-  notes?: string
+  amount: number
+  spent: number
+  period: 'monthly' | 'quarterly' | 'yearly'
+  start_date: string
+  end_date: string
+  status: 'active' | 'completed' | 'overdue'
   created_at: string
   updated_at: string
 }
 
-export interface CreateTransactionData {
-  type: "income" | "expense" | "transfer"
-  category: string
-  description: string
-  amount: number
-  currency: string
-  transaction_date: string
-  payment_method: "cash" | "bank_transfer" | "check" | "mobile_money" | "other"
-  reference_number?: string
-  related_entity_type?: "crop" | "cattle" | "poultry" | "stock" | "zone"
-  related_entity_id?: number
-  notes?: string
+export interface FinancialSummary {
+  total_income: number
+  total_expenses: number
+  net_profit: number
+  profit_margin: number
+  monthly_income: number
+  monthly_expenses: number
+  monthly_profit: number
+  yearly_income: number
+  yearly_expenses: number
+  yearly_profit: number
+  top_income_categories: Array<{
+    category: string
+    amount: number
+    percentage: number
+  }>
+  top_expense_categories: Array<{
+    category: string
+    amount: number
+    percentage: number
+  }>
+  monthly_trend: Array<{
+    month: string
+    income: number
+    expenses: number
+    profit: number
+  }>
 }
 
-export interface CreateBudgetData {
-  name: string
-  category: string
-  allocated_amount: number
-  period_start: string
-  period_end: string
-  notes?: string
+export interface FinancialAlert {
+  id: number
+  type: 'budget_exceeded' | 'low_cash_flow' | 'unusual_expense' | 'missing_income'
+  severity: 'low' | 'medium' | 'high' | 'critical'
+  title: string
+  message: string
+  amount?: number
+  threshold?: number
+  created_at: string
+  is_read: boolean
 }
 
-// Transactions
-export const getTransactions = async (params?: {
+// ===== API FUNCTIONS =====
+
+// Transactions financières
+export const getFinancialTransactions = async (params?: {
   page?: number
   per_page?: number
-  type?: string
+  type?: 'income' | 'expense'
   category?: string
   start_date?: string
   end_date?: string
   search?: string
-}): Promise<{ items: Transaction[]; pagination: any }> => {
+}): Promise<{ data: FinancialTransaction[]; meta: any }> => {
   const response = await api.get("/financial/transactions", { params })
-  return response.data.data
+  return {
+    data: response.data.data.transactions || response.data.data.data || [],
+    meta: response.data.data.pagination || response.data.data.meta || {}
+  }
 }
 
-export const getTransaction = async (id: number): Promise<Transaction> => {
-  const response = await api.get(`/financial/transactions/${id}`)
-  return response.data.data
-}
-
-export const createTransaction = async (data: CreateTransactionData): Promise<Transaction> => {
+export const createFinancialTransaction = async (data: Partial<FinancialTransaction>): Promise<FinancialTransaction> => {
   const response = await api.post("/financial/transactions", data)
   return response.data.data
 }
 
-export const updateTransaction = async (id: number, data: Partial<CreateTransactionData>): Promise<Transaction> => {
+export const updateFinancialTransaction = async (id: number, data: Partial<FinancialTransaction>): Promise<FinancialTransaction> => {
   const response = await api.put(`/financial/transactions/${id}`, data)
   return response.data.data
 }
 
-export const deleteTransaction = async (id: number): Promise<void> => {
+export const deleteFinancialTransaction = async (id: number): Promise<void> => {
   await api.delete(`/financial/transactions/${id}`)
 }
 
@@ -93,23 +109,82 @@ export const getBudgets = async (params?: {
   page?: number
   per_page?: number
   status?: string
-  category?: string
-}): Promise<{ items: Budget[]; pagination: any }> => {
+  period?: string
+}): Promise<{ data: Budget[]; meta: any }> => {
   const response = await api.get("/financial/budgets", { params })
-  return response.data.data
+  return {
+    data: response.data.data.budgets || response.data.data.data || [],
+    meta: response.data.data.pagination || response.data.data.meta || {}
+  }
 }
 
-export const createBudget = async (data: CreateBudgetData): Promise<Budget> => {
+export const createBudget = async (data: Partial<Budget>): Promise<Budget> => {
   const response = await api.post("/financial/budgets", data)
   return response.data.data
 }
 
-// Rapports financiers
-export const getFinancialReports = async (params?: {
+export const updateBudget = async (id: number, data: Partial<Budget>): Promise<Budget> => {
+  const response = await api.put(`/financial/budgets/${id}`, data)
+  return response.data.data
+}
+
+export const deleteBudget = async (id: number): Promise<void> => {
+  await api.delete(`/financial/budgets/${id}`)
+}
+
+// Résumé financier
+export const getFinancialSummary = async (params?: {
   start_date?: string
   end_date?: string
-  report_type?: "summary" | "detailed" | "category_breakdown"
-}): Promise<any> => {
-  const response = await api.get("/financial/reports", { params })
+  period?: 'month' | 'quarter' | 'year'
+}): Promise<FinancialSummary> => {
+  const response = await api.get("/financial/summary", { params })
+  return response.data.data
+}
+
+// Alertes financières
+export const getFinancialAlerts = async (): Promise<FinancialAlert[]> => {
+  const response = await api.get("/financial/alerts")
+  return response.data.data
+}
+
+export const markFinancialAlertAsRead = async (id: number): Promise<void> => {
+  await api.put(`/financial/alerts/${id}/read`)
+}
+
+// Catégories financières
+export const getFinancialCategories = async (): Promise<{
+  income_categories: string[]
+  expense_categories: string[]
+}> => {
+  const response = await api.get("/financial/categories")
+  return response.data.data
+}
+
+// Import/Export
+export const exportFinancialData = async (params?: {
+  start_date?: string
+  end_date?: string
+  format?: 'csv' | 'excel' | 'pdf'
+}): Promise<Blob> => {
+  const response = await api.get("/financial/export", { 
+    params,
+    responseType: 'blob'
+  })
+  return response.data
+}
+
+export const importFinancialData = async (file: File): Promise<{
+  imported: number
+  errors: string[]
+}> => {
+  const formData = new FormData()
+  formData.append('file', file)
+  
+  const response = await api.post("/financial/import", formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
   return response.data.data
 }

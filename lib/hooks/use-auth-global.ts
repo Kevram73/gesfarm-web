@@ -8,33 +8,43 @@ let globalAuthListeners: ((isAuth: boolean) => void)[] = []
  */
 export function useAuthGlobal() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
     // Ajouter ce composant à la liste des listeners
     globalAuthListeners.push(setIsAuthenticated)
 
     // Vérifier l'authentification côté client
-    if (typeof window !== 'undefined') {
-      const token = localStorage.getItem("gesfarm_token")
-      const authState = !!token
-      
-      // Mettre à jour l'état global et local
-      globalAuthState = authState
-      setIsAuthenticated(authState)
-      
-      // Notifier tous les autres listeners
-      globalAuthListeners.forEach(listener => {
-        if (listener !== setIsAuthenticated) {
-          listener(authState)
-        }
-      })
-    }
+    const token = localStorage.getItem("gesfarm_token")
+    const authState = !!token
+    
+    // Mettre à jour l'état global et local
+    globalAuthState = authState
+    setIsAuthenticated(authState)
+    
+    // Notifier tous les autres listeners
+    globalAuthListeners.forEach(listener => {
+      if (listener !== setIsAuthenticated) {
+        listener(authState)
+      }
+    })
 
     // Cleanup
     return () => {
       globalAuthListeners = globalAuthListeners.filter(listener => listener !== setIsAuthenticated)
     }
-  }, [])
+  }, [mounted])
+
+  // Pendant l'hydratation, retourner false pour éviter les problèmes
+  if (!mounted) {
+    return false
+  }
 
   return isAuthenticated
 }

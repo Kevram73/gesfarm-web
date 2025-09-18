@@ -1,6 +1,6 @@
 "use client"
 
-import { Layout } from "@/lib/components/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
@@ -13,7 +13,7 @@ export default function CropsPage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <LayoutSimple>
         <div className="space-y-6">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-gray-900">Gestion des Cultures</h1>
@@ -27,7 +27,7 @@ export default function CropsPage() {
             ))}
           </div>
         </div>
-      </Layout>
+      </LayoutSimple>
     )
   }
 

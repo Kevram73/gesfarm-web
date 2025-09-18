@@ -1,7 +1,7 @@
 "use client"
 
 import { AuthGuard } from "@/lib/components/auth/auth-guard"
-import { Layout } from "@/lib/components/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
@@ -18,7 +18,7 @@ export default function StocksPage() {
   if (isLoading) {
     return (
       <AuthGuard>
-        <Layout>
+        <LayoutSimple>
           <div className="space-y-6">
             <div>
               <h1 className="text-3xl font-bold tracking-tight text-white">Gestion des Stocks</h1>
@@ -32,23 +32,18 @@ export default function StocksPage() {
               ))}
             </div>
           </div>
-        </Layout>
+        </LayoutSimple>
       </AuthGuard>
     )
   }
 
   const stockItems = stockData?.data || []
-  
-  // Debug: Log des données pour vérifier
-  console.log("Stock data:", stockData)
-  console.log("Stock items array:", stockItems)
-  console.log("First stock item:", stockItems[0])
 
   return (
     <AuthGuard>
-      <Layout>
-        <div className="space-y-6">
-          {/* Header */}
+      <LayoutSimple>
+      <div className="space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-white">Gestion des Stocks</h1>
@@ -122,7 +117,7 @@ export default function StocksPage() {
         {/* Liste des articles */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {stockItems.map((item) => {
-            const isLowStock = parseFloat(item.current_quantity) <= parseFloat(item.minimum_quantity)
+            const isLowStock = parseFloat((item as any).current_quantity) <= parseFloat((item as any).minimum_quantity)
             const isExpired = item.expiry_date && new Date(item.expiry_date) < new Date()
             
             return (
@@ -155,28 +150,28 @@ export default function StocksPage() {
                       <span className={`font-medium ${
                         isLowStock ? "text-red-600" : "text-gray-900"
                       }`}>
-                        {item.current_quantity} {item.unit}
+                        {(item as any).current_quantity} {item.unit}
                       </span>
                     </div>
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Stock minimum:</span>
-                      <span className="text-gray-900">{item.minimum_quantity} {item.unit}</span>
+                      <span className="text-gray-900">{(item as any).minimum_quantity} {item.unit}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Fournisseur:</span>
-                      <span className="text-gray-900">{item.supplier || 'N/A'}</span>
+                      <span className="text-gray-900">{(item as any).supplier || 'N/A'}</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Prix unitaire:</span>
-                      <span className="text-gray-900">{(parseFloat(item.unit_cost) || 0).toLocaleString()} FCFA</span>
+                      <span className="text-gray-900">{(parseFloat((item as any).unit_cost) || 0).toLocaleString()} FCFA</span>
                     </div>
                     
                     <div className="flex justify-between items-center">
                       <span className="text-sm text-gray-600">Catégorie:</span>
-                      <span className="text-gray-900 text-sm">{item.category?.name || 'N/A'}</span>
+                      <span className="text-gray-900 text-sm">{(item as any).category?.name || 'N/A'}</span>
                     </div>
                     
                     {item.location && (
@@ -218,7 +213,7 @@ export default function StocksPage() {
         </div>
 
         {/* Pagination */}
-        {stockData?.pagination && stockData.pagination.last_page > 1 && (
+        {(stockData as any)?.pagination && (stockData as any).pagination.last_page > 1 && (
           <div className="flex justify-center">
             <div className="flex space-x-2">
               <Button variant="outline" size="sm">
@@ -230,8 +225,7 @@ export default function StocksPage() {
             </div>
           </div>
         )}
-        </div>
-      </Layout>
-    </AuthGuard>
+      </div>
+    </LayoutSimple>
   )
 }
