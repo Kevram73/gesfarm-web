@@ -1,40 +1,32 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Layout } from "@/lib/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
-import { useUsers } from "@/lib/hooks/use-users"
-import { Users, Mail, Phone, Globe, MapPin, Building } from "lucide-react"
+import { Input } from "@/lib/components/ui/input"
+import { useUsers } from "@/lib/hooks/use-api-data"
+import { User, Plus, Search, Filter, Mail, Phone, Shield, Edit, Trash2 } from "lucide-react"
 
 export default function UsersPage() {
-  const { data: users, isLoading, error } = useUsers()
+  const router = useRouter()
+  const { data: usersData, isLoading } = useUsers({ per_page: 20 })
 
   if (isLoading) {
     return (
       <Layout>
         <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Utilisateurs</h1>
-            <p className="text-muted-foreground">
-              Gestion des utilisateurs de l'application.
-            </p>
+          <div className="h-8 bg-gray-700 rounded animate-pulse"></div>
+          <div className="grid gap-4 md:grid-cols-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="h-24 bg-gray-700 rounded animate-pulse"></div>
+            ))}
           </div>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {[...Array(6)].map((_, i) => (
-              <Card key={i} className="animate-pulse">
-                <CardHeader>
-                  <div className="h-4 bg-muted rounded w-3/4"></div>
-                  <div className="h-3 bg-muted rounded w-1/2"></div>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div className="h-3 bg-muted rounded"></div>
-                    <div className="h-3 bg-muted rounded w-5/6"></div>
-                    <div className="h-3 bg-muted rounded w-4/6"></div>
-                  </div>
-                </CardContent>
-              </Card>
+              <div key={i} className="h-48 bg-gray-700 rounded animate-pulse"></div>
             ))}
           </div>
         </div>
@@ -42,33 +34,44 @@ export default function UsersPage() {
     )
   }
 
-  if (error) {
-    return (
-      <Layout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Utilisateurs</h1>
-            <p className="text-muted-foreground">
-              Gestion des utilisateurs de l'application.
-            </p>
-          </div>
-          <Card>
-            <CardContent className="pt-6">
-              <div className="text-center">
-                <p className="text-destructive">Erreur lors du chargement des utilisateurs</p>
-                <Button 
-                  variant="outline" 
-                  className="mt-4"
-                  onClick={() => window.location.reload()}
-                >
-                  Réessayer
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-      </Layout>
-    )
+  const users = usersData?.items || []
+
+  const getRoleColor = (role: string) => {
+    switch (role) {
+      case "admin": return "bg-red-500"
+      case "manager": return "bg-blue-500"
+      case "worker": return "bg-green-500"
+      case "viewer": return "bg-gray-500"
+      default: return "bg-gray-500"
+    }
+  }
+
+  const getRoleLabel = (role: string) => {
+    switch (role) {
+      case "admin": return "Administrateur"
+      case "manager": return "Gestionnaire"
+      case "worker": return "Ouvrier"
+      case "viewer": return "Observateur"
+      default: return role
+    }
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case "active": return "bg-green-500"
+      case "inactive": return "bg-gray-500"
+      case "suspended": return "bg-red-500"
+      default: return "bg-gray-500"
+    }
+  }
+
+  const getStatusLabel = (status: string) => {
+    switch (status) {
+      case "active": return "Actif"
+      case "inactive": return "Inactif"
+      case "suspended": return "Suspendu"
+      default: return status
+    }
   }
 
   return (
@@ -77,100 +80,208 @@ export default function UsersPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Utilisateurs</h1>
-            <p className="text-muted-foreground">
-              Gestion des utilisateurs de l'application.
+            <h1 className="text-3xl font-bold tracking-tight text-white">Gestion des Utilisateurs</h1>
+            <p className="text-gray-300 mt-2">
+              Gérer les utilisateurs et leurs permissions dans le système.
             </p>
           </div>
-          <Button>
-            <Users className="mr-2 h-4 w-4" />
-            Ajouter un utilisateur
+          <Button 
+            onClick={() => router.push('/users/create')}
+            className="bg-green-600 hover:bg-green-700"
+          >
+            <Plus className="mr-2 h-4 w-4" />
+            Nouvel utilisateur
           </Button>
         </div>
 
-        {/* Stats */}
+        {/* Statistiques rapides */}
         <div className="grid gap-4 md:grid-cols-4">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total utilisateurs</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Total Utilisateurs</CardTitle>
+              <User className="h-4 w-4 text-gray-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{users?.length || 0}</div>
+              <div className="text-2xl font-bold">
+                {users.length}
+              </div>
+              <p className="text-xs text-gray-600">
+                Utilisateurs enregistrés
+              </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Utilisateurs actifs</CardTitle>
-              <Badge variant="secondary">En ligne</Badge>
+              <CardTitle className="text-sm font-medium">Administrateurs</CardTitle>
+              <Shield className="h-4 w-4 text-red-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{Math.floor((users?.length || 0) * 0.7)}</div>
+              <div className="text-2xl font-bold">
+                {users.filter(user => user.roles?.includes("admin")).length}
+              </div>
+              <p className="text-xs text-gray-600">
+                Accès complet
+              </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Nouveaux ce mois</CardTitle>
-              <Badge variant="outline">+12</Badge>
+              <CardTitle className="text-sm font-medium">Gestionnaires</CardTitle>
+              <User className="h-4 w-4 text-blue-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">12</div>
+              <div className="text-2xl font-bold">
+                {users.filter(user => user.roles?.includes("manager")).length}
+              </div>
+              <p className="text-xs text-gray-600">
+                Gestion des données
+              </p>
             </CardContent>
           </Card>
+
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Taux de rétention</CardTitle>
-              <Badge variant="default">94%</Badge>
+              <CardTitle className="text-sm font-medium">Actifs</CardTitle>
+              <User className="h-4 w-4 text-green-500" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">94%</div>
+              <div className="text-2xl font-bold">
+                {users.filter(user => user.status === "active").length}
+              </div>
+              <p className="text-xs text-gray-600">
+                Utilisateurs actifs
+              </p>
             </CardContent>
           </Card>
         </div>
 
-        {/* Users Grid */}
+        {/* Recherche et filtres */}
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center space-x-4">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                <Input
+                  placeholder="Rechercher un utilisateur..."
+                  className="pl-9"
+                />
+              </div>
+              <Button variant="outline">
+                <Filter className="mr-2 h-4 w-4" />
+                Filtrer
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Liste des utilisateurs */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {users?.map((user) => (
+          {users.map((user) => (
             <Card key={user.id} className="hover:shadow-md transition-shadow">
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">{user.name}</CardTitle>
-                  <Badge variant="outline">ID: {user.id}</Badge>
+                  <div className="flex items-center space-x-2">
+                    <User className="h-5 w-5 text-gray-500" />
+                    <CardTitle className="text-lg">{user.name}</CardTitle>
+                  </div>
+                  <Badge className={`${getStatusColor(user.status)} text-white`}>
+                    {getStatusLabel(user.status)}
+                  </Badge>
                 </div>
+                <p className="text-sm text-gray-600">{user.email}</p>
               </CardHeader>
-              <CardContent className="space-y-3">
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Mail className="h-4 w-4" />
-                  <span>{user.email}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Phone className="h-4 w-4" />
-                  <span>{user.phone}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Globe className="h-4 w-4" />
-                  <span>{user.website}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <MapPin className="h-4 w-4" />
-                  <span>{user.address.city}</span>
-                </div>
-                <div className="flex items-center space-x-2 text-sm text-muted-foreground">
-                  <Building className="h-4 w-4" />
-                  <span>{user.company.name}</span>
-                </div>
-                <div className="pt-2 flex space-x-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    Modifier
-                  </Button>
-                  <Button variant="destructive" size="sm" className="flex-1">
-                    Supprimer
-                  </Button>
+              <CardContent>
+                <div className="space-y-3">
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Rôles:</span>
+                    <div className="flex space-x-1">
+                      {user.roles?.map((role) => (
+                        <Badge key={role} className={`${getRoleColor(role)} text-white text-xs`}>
+                          {getRoleLabel(role)}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  {user.phone && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Téléphone:</span>
+                      <span className="text-gray-900 text-sm">
+                        {user.phone}
+                      </span>
+                    </div>
+                  )}
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Créé le:</span>
+                    <span className="text-gray-900 text-sm">
+                      {new Date(user.created_at).toLocaleDateString("fr-FR")}
+                    </span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center">
+                    <span className="text-sm text-gray-600">Dernière connexion:</span>
+                    <span className="text-gray-900 text-sm">
+                      {user.last_login_at 
+                        ? new Date(user.last_login_at).toLocaleDateString("fr-FR")
+                        : "Jamais"
+                      }
+                    </span>
+                  </div>
+                  
+                  <div className="pt-2 flex space-x-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => router.push(`/users/edit/${user.id}`)}
+                    >
+                      <Edit className="mr-1 h-3 w-3" />
+                      Modifier
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="flex-1"
+                      onClick={() => {
+                        if (confirm("Êtes-vous sûr de vouloir supprimer cet utilisateur ?")) {
+                          // Ici vous devriez appeler l'API de suppression
+                          console.log("Supprimer utilisateur:", user.id)
+                        }
+                      }}
+                    >
+                      <Trash2 className="mr-1 h-3 w-3" />
+                      Supprimer
+                    </Button>
+                  </div>
                 </div>
               </CardContent>
             </Card>
           ))}
         </div>
+
+        {/* Pagination */}
+        {usersData?.pagination && usersData.pagination.last_page > 1 && (
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex items-center justify-between">
+                <p className="text-sm text-gray-600">
+                  Affichage de {usersData.pagination.from} à {usersData.pagination.to} sur {usersData.pagination.total} utilisateurs
+                </p>
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="sm" disabled={usersData.pagination.current_page === 1}>
+                    Précédent
+                  </Button>
+                  <Button variant="outline" size="sm" disabled={usersData.pagination.current_page === usersData.pagination.last_page}>
+                    Suivant
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
     </Layout>
   )

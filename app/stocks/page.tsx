@@ -1,41 +1,52 @@
 "use client"
 
+import { AuthGuard } from "@/lib/components/auth/auth-guard"
 import { Layout } from "@/lib/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
 import { Input } from "@/lib/components/ui/input"
-import { useStockItems, useStockAlerts } from "@/lib/hooks/use-fake-data"
+import { useStockItems, useStockAlerts } from "@/lib/hooks/use-api-data"
+import { useRouter } from "next/navigation"
 import { Package, AlertTriangle, Plus, Search, Filter } from "lucide-react"
 
 export default function StocksPage() {
+  const router = useRouter()
   const { data: stockData, isLoading } = useStockItems({ per_page: 20 })
   const { data: stockAlerts } = useStockAlerts()
 
   if (isLoading) {
     return (
-      <Layout>
-        <div className="space-y-6">
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight text-white">Gestion des Stocks</h1>
-            <p className="text-gray-300 mt-2">
-              Chargement des articles de stock...
-            </p>
+      <AuthGuard>
+        <Layout>
+          <div className="space-y-6">
+            <div>
+              <h1 className="text-3xl font-bold tracking-tight text-white">Gestion des Stocks</h1>
+              <p className="text-gray-300 mt-2">
+                Chargement des articles de stock...
+              </p>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="h-48 bg-gray-700 rounded-lg animate-pulse"></div>
+              ))}
+            </div>
           </div>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-            {[...Array(6)].map((_, i) => (
-              <div key={i} className="h-48 bg-gray-700 rounded-lg animate-pulse"></div>
-            ))}
-          </div>
-        </div>
-      </Layout>
+        </Layout>
+      </AuthGuard>
     )
   }
 
-  const stockItems = stockData?.items || []
+  const stockItems = stockData?.data || []
+  
+  // Debug: Log des données pour vérifier
+  console.log("Stock data:", stockData)
+  console.log("Stock items array:", stockItems)
+  console.log("First stock item:", stockItems[0])
 
   return (
-    <Layout>
+    <AuthGuard>
+      <Layout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -68,13 +79,14 @@ export default function StocksPage() {
                 {stockAlerts.slice(0, 3).map((alert) => (
                   <div key={alert.id} className="flex items-center justify-between p-2 bg-white rounded border">
                     <div>
-                      <p className="font-medium">{alert.stock_item.name}</p>
+                      <p className="font-medium">{alert.item_name}</p>
                       <p className="text-sm text-gray-600">
-                        Stock actuel: {alert.stock_item.current_quantity} {alert.stock_item.unit}
+                        Stock actuel: {alert.current_stock} unités
                       </p>
                     </div>
                     <Badge variant="destructive">
-                      {alert.alert_type === "low_stock" ? "Stock bas" : "Expiré"}
+                      {alert.alert_type === "low_stock" ? "Stock bas" : 
+                       alert.alert_type === "expired" ? "Expiré" : "Proche expiration"}
                     </Badge>
                   </div>
                 ))}
@@ -110,7 +122,7 @@ export default function StocksPage() {
         {/* Liste des articles */}
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {stockItems.map((item) => {
-            const isLowStock = item.current_quantity <= item.minimum_quantity
+            const isLowStock = parseFloat(item.current_quantity) <= parseFloat(item.minimum_quantity)
             const isExpired = item.expiry_date && new Date(item.expiry_date) < new Date()
             
             return (
@@ -153,14 +165,24 @@ export default function StocksPage() {
                     </div>
                     
                     <div className="flex justify-between items-center">
-                      <span className="text-sm text-gray-600">Coût unitaire:</span>
-                      <span className="text-gray-900">{item.unit_cost.toLocaleString()} FCFA</span>
+                      <span className="text-sm text-gray-600">Fournisseur:</span>
+                      <span className="text-gray-900">{item.supplier || 'N/A'}</span>
                     </div>
                     
-                    {item.supplier && (
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Prix unitaire:</span>
+                      <span className="text-gray-900">{(parseFloat(item.unit_cost) || 0).toLocaleString()} FCFA</span>
+                    </div>
+                    
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm text-gray-600">Catégorie:</span>
+                      <span className="text-gray-900 text-sm">{item.category?.name || 'N/A'}</span>
+                    </div>
+                    
+                    {item.location && (
                       <div className="flex justify-between items-center">
-                        <span className="text-sm text-gray-600">Fournisseur:</span>
-                        <span className="text-gray-900 text-sm">{item.supplier}</span>
+                        <span className="text-sm text-gray-600">Emplacement:</span>
+                        <span className="text-gray-900 text-sm">{item.location}</span>
                       </div>
                     )}
                     
@@ -176,7 +198,12 @@ export default function StocksPage() {
                     )}
                     
                     <div className="pt-2 flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/stocks/edit/${item.id}`)}
+                      >
                         Modifier
                       </Button>
                       <Button variant="outline" size="sm" className="flex-1">

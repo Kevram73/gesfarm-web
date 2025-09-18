@@ -19,62 +19,111 @@ import {
   Save, 
   X,
   LogOut,
-  Settings
+  Settings,
+  Lock
 } from "lucide-react"
 import toast from "react-hot-toast"
 import { Layout } from "@/lib/components/layout/layout"
-
-interface UserProfile {
-  id: number
-  name: string
-  email: string
-  phone?: string
-  address?: string
-  role: string
-  joinDate: string
-  avatar?: string
-}
+import { useCurrentUser, useUpdateUserProfile, useChangePassword } from "@/lib/hooks/use-api-data"
+import { useLogout } from "@/lib/hooks/use-auth"
 
 export default function ProfilePage() {
-  const [user, setUser] = useState<UserProfile | null>(null)
   const [isEditing, setIsEditing] = useState(false)
-  const [editedUser, setEditedUser] = useState<UserProfile | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
+  const [formData, setFormData] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    address: ""
+  })
+  const [passwordData, setPasswordData] = useState({
+    current_password: "",
+    new_password: "",
+    new_password_confirmation: ""
+  })
+  
   const router = useRouter()
+  const { data: user, isLoading, error } = useCurrentUser()
+  const updateProfileMutation = useUpdateUserProfile()
+  const changePasswordMutation = useChangePassword()
+  const logoutMutation = useLogout()
 
+  // Initialiser les données du formulaire quand l'utilisateur est chargé
   useEffect(() => {
-    // Récupérer les données utilisateur depuis localStorage
-    const userData = localStorage.getItem("user")
-    if (userData) {
-      const parsedUser = JSON.parse(userData)
-      setUser(parsedUser)
-      setEditedUser(parsedUser)
-    } else {
-      // Rediriger vers login si pas connecté
-      router.push("/login")
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || ""
+      })
     }
-    setIsLoading(false)
-  }, [router])
+  }, [user])
 
-  const handleSave = () => {
-    if (editedUser) {
-      localStorage.setItem("user", JSON.stringify(editedUser))
-      setUser(editedUser)
-      setIsEditing(false)
+  const handleInputChange = (field: string, value: string) => {
+    setFormData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handlePasswordChange = (field: string, value: string) => {
+    setPasswordData(prev => ({
+      ...prev,
+      [field]: value
+    }))
+  }
+
+  const handleSave = async () => {
+    try {
+      await updateProfileMutation.mutateAsync(formData)
       toast.success("Profil mis à jour avec succès !")
+      setIsEditing(false)
+    } catch (error: any) {
+      toast.error(`Erreur lors de la mise à jour: ${error.response?.data?.message || error.message}`)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (passwordData.new_password !== passwordData.new_password_confirmation) {
+      toast.error("Les mots de passe ne correspondent pas")
+      return
+    }
+
+    try {
+      await changePasswordMutation.mutateAsync(passwordData)
+      toast.success("Mot de passe modifié avec succès !")
+      setIsChangingPassword(false)
+      setPasswordData({
+        current_password: "",
+        new_password: "",
+        new_password_confirmation: ""
+      })
+    } catch (error: any) {
+      toast.error(`Erreur lors du changement de mot de passe: ${error.response?.data?.message || error.message}`)
     }
   }
 
   const handleCancel = () => {
-    setEditedUser(user)
+    if (user) {
+      setFormData({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone || "",
+        address: user.address || ""
+      })
+    }
     setIsEditing(false)
   }
 
-  const handleLogout = () => {
-    localStorage.removeItem("user")
-    localStorage.removeItem("token")
-    toast.success("Déconnexion réussie !")
-    router.push("/login")
+  const handleLogout = async () => {
+    try {
+      await logoutMutation.mutateAsync()
+      toast.success("Déconnexion réussie !")
+      // La redirection est gérée automatiquement dans le hook useLogout
+    } catch (error: any) {
+      toast.error(`Erreur lors de la déconnexion: ${error.message}`)
+    }
   }
 
   const getRoleColor = (role: string) => {
@@ -101,6 +150,22 @@ export default function ProfilePage() {
         <div className="space-y-6">
           <div className="h-8 bg-gray-700 rounded animate-pulse"></div>
           <div className="h-64 bg-gray-700 rounded animate-pulse"></div>
+        </div>
+      </Layout>
+    )
+  }
+
+  if (error) {
+    return (
+      <Layout>
+        <div className="space-y-6">
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-red-500 mb-4">Erreur de chargement</h2>
+            <p className="text-gray-400 mb-4">Impossible de charger votre profil</p>
+            <Button onClick={() => window.location.reload()}>
+              Réessayer
+            </Button>
+          </div>
         </div>
       </Layout>
     )
@@ -133,9 +198,10 @@ export default function ProfilePage() {
                 <Button
                   onClick={handleSave}
                   className="bg-green-600 hover:bg-green-700"
+                  disabled={updateProfileMutation.isPending}
                 >
                   <Save className="w-4 h-4 mr-2" />
-                  Sauvegarder
+                  {updateProfileMutation.isPending ? "Sauvegarde..." : "Sauvegarder"}
                 </Button>
                 <Button
                   onClick={handleCancel}
@@ -146,19 +212,12 @@ export default function ProfilePage() {
                 </Button>
               </>
             )}
-            <Button
-              onClick={handleLogout}
-              variant="destructive"
-            >
-              <LogOut className="w-4 h-4 mr-2" />
-              Déconnexion
-            </Button>
           </div>
         </div>
 
         <div className="grid gap-6 md:grid-cols-3">
           {/* Informations principales */}
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 space-y-6">
             <Card className="bg-gray-800 border-gray-700">
               <CardHeader>
                 <CardTitle className="text-white flex items-center">
@@ -172,64 +231,157 @@ export default function ProfilePage() {
               <CardContent className="space-y-4">
                 <div className="grid gap-4 md:grid-cols-2">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-300">Nom complet</Label>
-                    {isEditing ? (
+                    <Label htmlFor="name" className="text-gray-300">Nom complet *</Label>
                       <Input
                         id="name"
-                        value={editedUser?.name || ""}
-                        onChange={(e) => setEditedUser(prev => prev ? {...prev, name: e.target.value} : null)}
+                      value={formData.name}
+                      onChange={(e) => handleInputChange("name", e.target.value)}
                         className="bg-gray-700 border-gray-600 text-white"
+                      disabled={!isEditing}
                       />
-                    ) : (
-                      <p className="text-white">{user.name}</p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
-                    <Label htmlFor="email" className="text-gray-300">Email</Label>
-                    {isEditing ? (
+                    <Label htmlFor="email" className="text-gray-300">Email *</Label>
                       <Input
                         id="email"
                         type="email"
-                        value={editedUser?.email || ""}
-                        onChange={(e) => setEditedUser(prev => prev ? {...prev, email: e.target.value} : null)}
+                      value={formData.email}
+                      onChange={(e) => handleInputChange("email", e.target.value)}
                         className="bg-gray-700 border-gray-600 text-white"
+                      disabled={!isEditing}
                       />
-                    ) : (
-                      <p className="text-white">{user.email}</p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="phone" className="text-gray-300">Téléphone</Label>
-                    {isEditing ? (
                       <Input
                         id="phone"
-                        value={editedUser?.phone || ""}
-                        onChange={(e) => setEditedUser(prev => prev ? {...prev, phone: e.target.value} : null)}
+                      value={formData.phone}
+                      onChange={(e) => handleInputChange("phone", e.target.value)}
                         className="bg-gray-700 border-gray-600 text-white"
                         placeholder="+33 6 12 34 56 78"
+                      disabled={!isEditing}
                       />
-                    ) : (
-                      <p className="text-white">{user.phone || "Non renseigné"}</p>
-                    )}
                   </div>
 
                   <div className="space-y-2">
                     <Label htmlFor="address" className="text-gray-300">Adresse</Label>
-                    {isEditing ? (
                       <Input
                         id="address"
-                        value={editedUser?.address || ""}
-                        onChange={(e) => setEditedUser(prev => prev ? {...prev, address: e.target.value} : null)}
+                      value={formData.address}
+                      onChange={(e) => handleInputChange("address", e.target.value)}
                         className="bg-gray-700 border-gray-600 text-white"
                         placeholder="123 Rue de la Ferme, 75000 Paris"
+                      disabled={!isEditing}
                       />
-                    ) : (
-                      <p className="text-white">{user.address || "Non renseignée"}</p>
-                    )}
                   </div>
                 </div>
+                
+                {/* Informations supplémentaires */}
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Statut du compte</Label>
+                    <div className="flex items-center space-x-2">
+                      <div className={`w-3 h-3 rounded-full ${user.is_active ? 'bg-green-500' : 'bg-red-500'}`}></div>
+                      <span className="text-sm text-gray-300">
+                        {user.is_active ? 'Actif' : 'Inactif'}
+                      </span>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-gray-300">Dernière connexion</Label>
+                    <div className="text-sm text-gray-300">
+                      {user.updated_at ? new Date(user.updated_at).toLocaleDateString('fr-FR') : 'N/A'}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Changement de mot de passe */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardHeader>
+                <CardTitle className="text-white flex items-center">
+                  <Lock className="w-5 h-5 mr-2" />
+                  Sécurité
+                </CardTitle>
+                <CardDescription className="text-gray-400">
+                  Modifiez votre mot de passe pour sécuriser votre compte
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {!isChangingPassword ? (
+                  <Button
+                    onClick={() => setIsChangingPassword(true)}
+                    variant="outline"
+                    className="w-full"
+                  >
+                    <Lock className="w-4 h-4 mr-2" />
+                    Changer le mot de passe
+                  </Button>
+                ) : (
+                  <div className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="current_password" className="text-gray-300">Mot de passe actuel *</Label>
+                      <Input
+                        id="current_password"
+                        type="password"
+                        value={passwordData.current_password}
+                        onChange={(e) => handlePasswordChange("current_password", e.target.value)}
+                        className="bg-gray-700 border-gray-600 text-white"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="new_password" className="text-gray-300">Nouveau mot de passe *</Label>
+                      <Input
+                        id="new_password"
+                        type="password"
+                        value={passwordData.new_password}
+                        onChange={(e) => handlePasswordChange("new_password", e.target.value)}
+                        className="bg-gray-700 border-gray-600 text-white"
+                      />
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <Label htmlFor="new_password_confirmation" className="text-gray-300">Confirmer le nouveau mot de passe *</Label>
+                      <Input
+                        id="new_password_confirmation"
+                        type="password"
+                        value={passwordData.new_password_confirmation}
+                        onChange={(e) => handlePasswordChange("new_password_confirmation", e.target.value)}
+                        className="bg-gray-700 border-gray-600 text-white"
+                      />
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        onClick={handleChangePassword}
+                        className="bg-green-600 hover:bg-green-700"
+                        disabled={changePasswordMutation.isPending}
+                      >
+                        <Save className="w-4 h-4 mr-2" />
+                        {changePasswordMutation.isPending ? "Modification..." : "Modifier le mot de passe"}
+                      </Button>
+                      <Button
+                        onClick={() => {
+                          setIsChangingPassword(false)
+                          setPasswordData({
+                            current_password: "",
+                            new_password: "",
+                            new_password_confirmation: ""
+                          })
+                        }}
+                        variant="outline"
+                      >
+                        <X className="w-4 h-4 mr-2" />
+                        Annuler
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -243,15 +395,15 @@ export default function ProfilePage() {
                   <Avatar className="w-24 h-24">
                     <AvatarImage src={user.avatar} />
                     <AvatarFallback className="bg-green-600 text-white text-2xl">
-                      {user.name.split(' ').map(n => n[0]).join('')}
+                      {user.name ? user.name.split(' ').map(n => n[0]).join('') : 'U'}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div className="text-center">
-                    <h3 className="text-xl font-semibold text-white">{user.name}</h3>
-                    <Badge className={`${getRoleColor(user.role)} text-white mt-2`}>
+                    <h3 className="text-xl font-semibold text-white">{user.name || 'Utilisateur'}</h3>
+                    <Badge className={`${getRoleColor(user.role || 'user')} text-white mt-2`}>
                       <Shield className="w-3 h-3 mr-1" />
-                      {getRoleLabel(user.role)}
+                      {getRoleLabel(user.role || 'user')}
                     </Badge>
                   </div>
                 </div>
@@ -266,15 +418,15 @@ export default function ProfilePage() {
               <CardContent className="space-y-3">
                 <div className="flex items-center text-gray-300">
                   <Mail className="w-4 h-4 mr-2" />
-                  <span className="text-sm">{user.email}</span>
+                  <span className="text-sm">{user.email || 'N/A'}</span>
                 </div>
                 <div className="flex items-center text-gray-300">
                   <Calendar className="w-4 h-4 mr-2" />
-                  <span className="text-sm">Membre depuis {new Date(user.joinDate).toLocaleDateString('fr-FR')}</span>
+                  <span className="text-sm">Membre depuis {user.created_at ? new Date(user.created_at).toLocaleDateString('fr-FR') : 'N/A'}</span>
                 </div>
                 <div className="flex items-center text-gray-300">
                   <Shield className="w-4 h-4 mr-2" />
-                  <span className="text-sm">ID: {user.id}</span>
+                  <span className="text-sm">ID: {user.id || 'N/A'}</span>
                 </div>
               </CardContent>
             </Card>
@@ -285,13 +437,30 @@ export default function ProfilePage() {
                 <CardTitle className="text-white text-lg">Actions Rapides</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                <Button variant="outline" className="w-full justify-start">
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => router.push("/settings")}
+                >
                   <Settings className="w-4 h-4 mr-2" />
                   Paramètres
                 </Button>
-                <Button variant="outline" className="w-full justify-start">
-                  <Shield className="w-4 h-4 mr-2" />
+                <Button 
+                  variant="outline" 
+                  className="w-full justify-start"
+                  onClick={() => setIsChangingPassword(true)}
+                >
+                  <Lock className="w-4 h-4 mr-2" />
                   Sécurité
+                </Button>
+                <Button 
+                  variant="destructive" 
+                  className="w-full justify-start"
+                  onClick={handleLogout}
+                  disabled={logoutMutation.isPending}
+                >
+                  <LogOut className="w-4 h-4 mr-2" />
+                  {logoutMutation.isPending ? "Déconnexion..." : "Déconnexion"}
                 </Button>
               </CardContent>
             </Card>

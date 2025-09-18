@@ -4,7 +4,7 @@ import { Layout } from "@/lib/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
-import { useNotifications } from "@/lib/hooks/use-fake-data"
+import { useNotifications } from "@/lib/hooks/use-api-data"
 import { 
   Bell, 
   AlertTriangle, 
@@ -40,7 +40,7 @@ export default function NotificationsPage() {
     )
   }
 
-  const notifications = notificationsData?.items || []
+  const notifications = notificationsData?.data || []
 
   const getPriorityColor = (priority: string) => {
     switch (priority) {

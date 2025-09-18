@@ -2,112 +2,111 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Layout } from "@/lib/components/layout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Input } from "@/lib/components/ui/input"
 import { Label } from "@/lib/components/ui/label"
 import { Textarea } from "@/lib/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/lib/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/lib/components/ui/card"
-import { ArrowLeft, Save, Users } from "lucide-react"
-import toast from "react-hot-toast"
-import { Layout } from "@/lib/components/layout/layout"
+import { useCreatePoultryFlock, useZones } from "@/lib/hooks/use-api-data"
+import { toast } from "react-hot-toast"
+import { ArrowLeft, Save, Egg } from "lucide-react"
 
-interface PoultryFlock {
-  id: number
-  name: string
-  breed: string
-  age: number
-  quantity: number
-  location: string
-  healthStatus: "healthy" | "sick" | "quarantine"
-  feedingSchedule: string
-  notes: string
-  dateAdded: string
-  expectedProduction: number
-  vaccinationStatus: "up_to_date" | "pending" | "overdue"
-}
-
-export default function CreatePoultryPage() {
+export default function CreatePoultryFlockPage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const createPoultryFlock = useCreatePoultryFlock()
+  const { data: zonesData } = useZones()
+  
   const [formData, setFormData] = useState({
-    name: "",
+    flock_number: "",
+    type: "",
     breed: "",
-    age: "",
-    quantity: "",
-    location: "",
-    healthStatus: "",
-    feedingSchedule: "",
-    notes: "",
-    expectedProduction: "",
-    vaccinationStatus: ""
+    initial_quantity: "",
+    current_quantity: "",
+    arrival_date: "",
+    age_days: "",
+    zone_id: "",
+    status: "active",
+    notes: ""
   })
 
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const poultryTypes = [
+    { value: "layer", label: "Pondeuse" },
+    { value: "broiler", label: "Poulet de chair" },
+    { value: "duck", label: "Canard" },
+    { value: "turkey", label: "Dinde" }
+  ]
+
   const breeds = [
-    "Poule pondeuse",
-    "Poulet de chair",
-    "Dinde",
-    "Canard",
-    "Oie",
-    "Pintade",
-    "Caille",
-    "Autre"
+    "Isa Brown", "Leghorn", "Cobb 500", "Ross 308", "Hubbard", "Hybrid", "Local"
   ]
 
-  const healthStatuses = [
-    { value: "healthy", label: "En bonne santé" },
-    { value: "sick", label: "Malade" },
-    { value: "quarantine", label: "En quarantaine" }
+  const statuses = [
+    { value: "active", label: "Actif" },
+    { value: "inactive", label: "Inactif" },
+    { value: "sold", label: "Vendu" }
   ]
 
-  const vaccinationStatuses = [
-    { value: "up_to_date", label: "À jour" },
-    { value: "pending", label: "En attente" },
-    { value: "overdue", label: "En retard" }
-  ]
+  const zones = zonesData?.items || []
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.flock_number.trim()) newErrors.flock_number = "Le numéro de lot est requis"
+    if (!formData.type) newErrors.type = "Le type est requis"
+    if (!formData.breed.trim()) newErrors.breed = "La race est requise"
+    if (!formData.initial_quantity || parseInt(formData.initial_quantity) <= 0) {
+      newErrors.initial_quantity = "La quantité initiale doit être positive"
+    }
+    if (!formData.current_quantity || parseInt(formData.current_quantity) < 0) {
+      newErrors.current_quantity = "La quantité actuelle doit être positive"
+    }
+    if (!formData.arrival_date) newErrors.arrival_date = "La date d'arrivée est requise"
+    if (!formData.age_days || parseInt(formData.age_days) < 0) {
+      newErrors.age_days = "L'âge en jours doit être positif"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    
+    if (!validateForm()) {
+      toast.error("Veuillez corriger les erreurs dans le formulaire")
+      return
+    }
 
     try {
-      // Simulation de création avec fake data
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const newFlock: PoultryFlock = {
-        id: Date.now(),
-        name: formData.name,
+      await createPoultryFlock.mutateAsync({
+        flock_number: formData.flock_number,
+        type: formData.type,
         breed: formData.breed,
-        age: parseInt(formData.age),
-        quantity: parseInt(formData.quantity),
-        location: formData.location,
-        healthStatus: formData.healthStatus as "healthy" | "sick" | "quarantine",
-        feedingSchedule: formData.feedingSchedule,
-        notes: formData.notes,
-        dateAdded: new Date().toISOString(),
-        expectedProduction: parseInt(formData.expectedProduction),
-        vaccinationStatus: formData.vaccinationStatus as "up_to_date" | "pending" | "overdue"
-      }
-
-      // Récupérer les volailles existantes
-      const existingPoultry = JSON.parse(localStorage.getItem("poultry") || "[]")
-      existingPoultry.push(newFlock)
-      localStorage.setItem("poultry", JSON.stringify(existingPoultry))
-
-      toast.success("Troupeau de volailles créé avec succès !")
+        initial_quantity: parseInt(formData.initial_quantity),
+        current_quantity: parseInt(formData.current_quantity),
+        arrival_date: formData.arrival_date,
+        age_days: parseInt(formData.age_days),
+        zone_id: formData.zone_id ? parseInt(formData.zone_id) : null,
+        status: formData.status,
+        notes: formData.notes || null
+      })
+      
+      toast.success("Lot de volailles créé avec succès !")
       router.push("/poultry")
-    } catch (error) {
-      toast.error("Erreur lors de la création du troupeau")
-    } finally {
-      setIsLoading(false)
+    } catch (error: any) {
+      toast.error(`Erreur lors de la création: ${error.response?.data?.message || error.message}`)
     }
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+    setFormData(prev => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }))
+    }
   }
 
   return (
@@ -118,204 +117,210 @@ export default function CreatePoultryPage() {
           <div className="flex items-center space-x-4">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => router.back()}
-              className="hover:bg-gray-700"
+              className="flex items-center"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Retour
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-white">Nouveau Troupeau</h1>
-              <p className="text-gray-400 mt-2">Ajouter un nouveau troupeau de volailles</p>
+              <h1 className="text-3xl font-bold tracking-tight text-white">Nouveau Lot de Volailles</h1>
+              <p className="text-gray-300 mt-2">
+                Ajouter un nouveau lot de volailles à votre élevage
+              </p>
             </div>
           </div>
         </div>
 
         {/* Formulaire */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-white flex items-center">
-              <Users className="w-5 h-5 mr-2" />
-              Informations du Troupeau
+            <CardTitle className="flex items-center">
+              <Egg className="mr-2 h-5 w-5" />
+              Informations du lot
             </CardTitle>
-            <CardDescription className="text-gray-400">
-              Remplissez les informations pour créer un nouveau troupeau de volailles
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Informations de base */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Informations de Base</h3>
-                  
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Numéro de lot */}
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-300">Nom du troupeau *</Label>
+                  <Label htmlFor="flock_number">Numéro de lot *</Label>
                     <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Ex: Troupeau A - Poules pondeuses"
-                      required
-                    />
+                    id="flock_number"
+                    value={formData.flock_number}
+                    onChange={(e) => handleInputChange("flock_number", e.target.value)}
+                    placeholder="Ex: FLK-2024-001"
+                    className={errors.flock_number ? "border-red-500" : ""}
+                  />
+                  {errors.flock_number && <p className="text-sm text-red-500">{errors.flock_number}</p>}
+                </div>
+
+                {/* Type */}
+                <div className="space-y-2">
+                  <Label htmlFor="type">Type *</Label>
+                  <Select value={formData.type} onValueChange={(value) => handleInputChange("type", value)}>
+                    <SelectTrigger className={errors.type ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Sélectionner un type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {poultryTypes.map((type) => (
+                        <SelectItem key={type.value} value={type.value}>
+                          {type.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.type && <p className="text-sm text-red-500">{errors.type}</p>}
                   </div>
 
+                {/* Race */}
                   <div className="space-y-2">
-                    <Label htmlFor="breed" className="text-gray-300">Race *</Label>
+                  <Label htmlFor="breed">Race *</Label>
                     <Select value={formData.breed} onValueChange={(value) => handleInputChange("breed", value)}>
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
+                    <SelectTrigger className={errors.breed ? "border-red-500" : ""}>
                         <SelectValue placeholder="Sélectionner une race" />
                       </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
+                    <SelectContent>
                         {breeds.map((breed) => (
-                          <SelectItem key={breed} value={breed} className="text-white hover:bg-gray-700">
+                        <SelectItem key={breed} value={breed}>
                             {breed}
                           </SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
-                  </div>
-
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="age" className="text-gray-300">Âge (semaines) *</Label>
-                      <Input
-                        id="age"
-                        type="number"
-                        value={formData.age}
-                        onChange={(e) => handleInputChange("age", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white"
-                        placeholder="0"
-                        required
-                      />
-                    </div>
-
-                    <div className="space-y-2">
-                      <Label htmlFor="quantity" className="text-gray-300">Nombre d'animaux *</Label>
-                      <Input
-                        id="quantity"
-                        type="number"
-                        value={formData.quantity}
-                        onChange={(e) => handleInputChange("quantity", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white"
-                        placeholder="0"
-                        required
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-gray-300">Emplacement *</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange("location", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Ex: Poulailler 1, Zone A"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="expectedProduction" className="text-gray-300">Production attendue (œufs/jour)</Label>
-                    <Input
-                      id="expectedProduction"
-                      type="number"
-                      value={formData.expectedProduction}
-                      onChange={(e) => handleInputChange("expectedProduction", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="0"
-                    />
-                  </div>
+                  {errors.breed && <p className="text-sm text-red-500">{errors.breed}</p>}
                 </div>
 
-                {/* Santé et soins */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Santé et Soins</h3>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="healthStatus" className="text-gray-300">État de santé *</Label>
-                    <Select value={formData.healthStatus} onValueChange={(value) => handleInputChange("healthStatus", value)}>
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                        <SelectValue placeholder="Sélectionner l'état de santé" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        {healthStatuses.map((status) => (
-                          <SelectItem key={status.value} value={status.value} className="text-white hover:bg-gray-700">
-                            {status.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                {/* Zone */}
+                <div className="space-y-2">
+                  <Label htmlFor="zone">Zone d'élevage</Label>
+                  <Select value={formData.zone_id} onValueChange={(value) => handleInputChange("zone_id", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner une zone" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {zones.map((zone) => (
+                        <SelectItem key={zone.id} value={zone.id.toString()}>
+                          {zone.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="vaccinationStatus" className="text-gray-300">Statut de vaccination *</Label>
-                    <Select value={formData.vaccinationStatus} onValueChange={(value) => handleInputChange("vaccinationStatus", value)}>
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                        <SelectValue placeholder="Sélectionner le statut" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        {vaccinationStatuses.map((status) => (
-                          <SelectItem key={status.value} value={status.value} className="text-white hover:bg-gray-700">
-                            {status.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                {/* Quantité initiale */}
+                    <div className="space-y-2">
+                  <Label htmlFor="initial_quantity">Quantité initiale *</Label>
+                      <Input
+                    id="initial_quantity"
+                        type="number"
+                    min="1"
+                    value={formData.initial_quantity}
+                    onChange={(e) => handleInputChange("initial_quantity", e.target.value)}
+                        placeholder="0"
+                    className={errors.initial_quantity ? "border-red-500" : ""}
+                      />
+                  {errors.initial_quantity && <p className="text-sm text-red-500">{errors.initial_quantity}</p>}
+                    </div>
+
+                {/* Quantité actuelle */}
+                    <div className="space-y-2">
+                  <Label htmlFor="current_quantity">Quantité actuelle *</Label>
+                      <Input
+                    id="current_quantity"
+                        type="number"
+                    min="0"
+                    value={formData.current_quantity}
+                    onChange={(e) => handleInputChange("current_quantity", e.target.value)}
+                        placeholder="0"
+                    className={errors.current_quantity ? "border-red-500" : ""}
+                      />
+                  {errors.current_quantity && <p className="text-sm text-red-500">{errors.current_quantity}</p>}
                   </div>
 
+                {/* Date d'arrivée */}
                   <div className="space-y-2">
-                    <Label htmlFor="feedingSchedule" className="text-gray-300">Programme d'alimentation</Label>
-                    <Textarea
-                      id="feedingSchedule"
-                      value={formData.feedingSchedule}
-                      onChange={(e) => handleInputChange("feedingSchedule", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Ex: 3 fois par jour - 7h, 12h, 18h"
-                      rows={3}
+                  <Label htmlFor="arrival_date">Date d'arrivée *</Label>
+                    <Input
+                    id="arrival_date"
+                    type="date"
+                    value={formData.arrival_date}
+                    onChange={(e) => handleInputChange("arrival_date", e.target.value)}
+                    className={errors.arrival_date ? "border-red-500" : ""}
+                  />
+                  {errors.arrival_date && <p className="text-sm text-red-500">{errors.arrival_date}</p>}
+                  </div>
+
+                {/* Âge en jours */}
+                  <div className="space-y-2">
+                  <Label htmlFor="age_days">Âge en jours *</Label>
+                    <Input
+                    id="age_days"
+                      type="number"
+                    min="0"
+                    value={formData.age_days}
+                    onChange={(e) => handleInputChange("age_days", e.target.value)}
+                      placeholder="0"
+                    className={errors.age_days ? "border-red-500" : ""}
                     />
+                  {errors.age_days && <p className="text-sm text-red-500">{errors.age_days}</p>}
+                </div>
+
+                {/* Statut */}
+                  <div className="space-y-2">
+                  <Label htmlFor="status">Statut</Label>
+                  <Select value={formData.status} onValueChange={(value) => handleInputChange("status", value)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un statut" />
+                      </SelectTrigger>
+                    <SelectContent>
+                      {statuses.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                            {status.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="notes" className="text-gray-300">Notes</Label>
+                {/* Notes */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="notes">Notes</Label>
                     <Textarea
                       id="notes"
                       value={formData.notes}
                       onChange={(e) => handleInputChange("notes", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Notes supplémentaires sur le troupeau..."
-                      rows={4}
+                    placeholder="Notes supplémentaires sur le lot..."
+                    rows={3}
                     />
-                  </div>
                 </div>
               </div>
 
-              {/* Boutons d'action */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+              {/* Boutons */}
+              <div className="flex justify-end space-x-4 pt-6">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
-                  className="hover:bg-gray-700"
                 >
                   Annuler
                 </Button>
                 <Button
                   type="submit"
-                  className="bg-orange-600 hover:bg-orange-700"
-                  disabled={isLoading}
+                  disabled={createPoultryFlock.isPending}
+                  className="bg-green-600 hover:bg-green-700"
                 >
-                  {isLoading ? (
+                  {createPoultryFlock.isPending ? (
                     <div className="flex items-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Création...
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      <Save className="w-4 h-4 mr-2" />
-                      Créer le Troupeau
+                      <Save className="mr-2 h-4 w-4" />
+                      Créer le lot
                     </div>
                   )}
                 </Button>

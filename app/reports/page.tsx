@@ -1,296 +1,392 @@
 "use client"
 
+import { useState } from "react"
+import { useRouter } from "next/navigation"
 import { Layout } from "@/lib/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
-import { Badge } from "@/lib/components/ui/badge"
+import { Label } from "@/lib/components/ui/label"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/lib/components/ui/select"
+import { useDashboardKPIs, useStockAlerts, usePoultryFlocks, useCattle, useCrops } from "@/lib/hooks/use-api-data"
 import { 
-  FileText, 
-  Download, 
-  Calendar, 
+  BarChart3, 
   TrendingUp, 
-  BarChart3,
-  PieChart,
-  Table,
-  Filter,
-  Search
+  TrendingDown, 
+  DollarSign, 
+  Package, 
+  Egg, 
+  Milk, 
+  Wheat,
+  Download,
+  Calendar,
+  Filter
 } from "lucide-react"
 
 export default function ReportsPage() {
-  // Données factices pour les rapports
-  const reports = [
-    {
-      id: 1,
-      title: "Rapport de Production Avicole",
-      type: "poultry",
-      period: "Janvier 2024",
-      status: "completed",
-      generated_at: "2024-01-20T10:30:00Z",
-      summary: {
-        total_eggs: 38450,
-        mortality_rate: 2.1,
-        feed_consumption: 1250,
-        revenue: 450000
-      }
-    },
-    {
-      id: 2,
-      title: "Rapport de Production Laitière",
-      type: "cattle",
-      period: "Janvier 2024",
-      status: "completed",
-      generated_at: "2024-01-20T09:15:00Z",
-      summary: {
-        total_milk: 10275,
-        average_per_cow: 25.5,
-        health_score: 95,
-        revenue: 350000
-      }
-    },
-    {
-      id: 3,
-      title: "Rapport Financier Mensuel",
-      type: "financial",
-      period: "Janvier 2024",
-      status: "completed",
-      generated_at: "2024-01-20T08:45:00Z",
-      summary: {
-        revenue: 1250000,
-        expenses: 850000,
-        profit: 400000,
-        margin: 32.0
-      }
-    },
-    {
-      id: 4,
-      title: "Rapport de Stock",
-      type: "stock",
-      period: "Janvier 2024",
-      status: "completed",
-      generated_at: "2024-01-20T07:20:00Z",
-      summary: {
-        total_items: 45,
-        low_stock: 5,
-        expired_items: 2,
-        total_value: 2500000
-      }
-    },
-    {
-      id: 5,
-      title: "Rapport de Cultures",
-      type: "crops",
-      period: "Janvier 2024",
-      status: "generating",
-      generated_at: "2024-01-20T11:00:00Z",
-      summary: null
-    }
+  const router = useRouter()
+  const { data: kpisData } = useDashboardKPIs()
+  const { data: stockAlerts } = useStockAlerts()
+  const { data: poultryData } = usePoultryFlocks()
+  const { data: cattleData } = useCattle()
+  const { data: cropsData } = useCrops()
+  
+  const [selectedPeriod, setSelectedPeriod] = useState("30")
+  const [selectedReport, setSelectedReport] = useState("overview")
+
+  const kpis = kpisData || {
+    total_revenue: 0,
+    total_expenses: 0,
+    net_profit: 0,
+    total_animals: 0,
+    total_crops: 0,
+    stock_alerts: 0
+  }
+
+  const stockItems = stockAlerts?.items || []
+  const poultryFlocks = poultryData?.items || []
+  const cattle = cattleData?.items || []
+  const crops = cropsData?.items || []
+
+  const reportTypes = [
+    { value: "overview", label: "Vue d'ensemble" },
+    { value: "financial", label: "Rapport financier" },
+    { value: "production", label: "Production" },
+    { value: "inventory", label: "Inventaire" },
+    { value: "performance", label: "Performance" }
   ]
 
-  const getTypeLabel = (type: string) => {
-    switch (type) {
-      case "poultry": return "Avicole"
-      case "cattle": return "Bovine"
-      case "financial": return "Financier"
-      case "stock": return "Stock"
-      case "crops": return "Cultures"
-      default: return type
-    }
+  const periods = [
+    { value: "7", label: "7 derniers jours" },
+    { value: "30", label: "30 derniers jours" },
+    { value: "90", label: "3 derniers mois" },
+    { value: "365", label: "12 derniers mois" }
+  ]
+
+  const generateReport = () => {
+    // Ici vous devriez générer le rapport selon le type sélectionné
+    console.log("Génération du rapport:", selectedReport, "pour la période:", selectedPeriod)
   }
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "poultry": return "bg-orange-500"
-      case "cattle": return "bg-blue-500"
-      case "financial": return "bg-green-500"
-      case "stock": return "bg-purple-500"
-      case "crops": return "bg-yellow-500"
-      default: return "bg-gray-500"
-    }
-  }
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "completed": return "bg-green-100 text-green-800"
-      case "generating": return "bg-yellow-100 text-yellow-800"
-      case "failed": return "bg-red-100 text-red-800"
-      default: return "bg-gray-100 text-gray-800"
-    }
-  }
-
-  const getStatusLabel = (status: string) => {
-    switch (status) {
-      case "completed": return "Terminé"
-      case "generating": return "En cours"
-      case "failed": return "Échec"
-      default: return status
-    }
+  const exportReport = () => {
+    // Ici vous devriez exporter le rapport
+    console.log("Export du rapport")
   }
 
   return (
     <Layout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="mb-8">
-          <div className="bg-gradient-to-r from-indigo-500 to-purple-500 p-6 rounded-lg text-white">
-            <h1 className="text-3xl font-bold tracking-tight">Rapports</h1>
-            <p className="mt-2 opacity-90">
-              Génération et consultation des rapports de votre exploitation.
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Rapports & Analytics</h1>
+            <p className="text-gray-300 mt-2">
+              Analysez les performances de votre exploitation agricole.
             </p>
           </div>
-        </div>
-
-        {/* Actions rapides */}
-        <div className="grid gap-4 md:grid-cols-4">
-          <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-orange-400 to-orange-500 hover:from-orange-500 hover:to-orange-600">
-            <FileText className="h-6 w-6" />
-            <span>Rapport Avicole</span>
-          </Button>
-          
-          <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-blue-400 to-blue-500 hover:from-blue-500 hover:to-blue-600">
-            <BarChart3 className="h-6 w-6" />
-            <span>Rapport Bovin</span>
-          </Button>
-          
-          <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-green-400 to-green-500 hover:from-green-500 hover:to-green-600">
-            <PieChart className="h-6 w-6" />
-            <span>Rapport Financier</span>
-          </Button>
-          
-          <Button className="h-20 flex-col space-y-2 bg-gradient-to-r from-purple-400 to-purple-500 hover:from-purple-500 hover:to-purple-600">
-            <Table className="h-6 w-6" />
-            <span>Rapport Stock</span>
-          </Button>
+          <div className="flex space-x-2">
+            <Button 
+              onClick={exportReport}
+              variant="outline"
+              className="flex items-center"
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Exporter
+            </Button>
+            <Button 
+              onClick={generateReport}
+              className="bg-green-600 hover:bg-green-700"
+            >
+              <BarChart3 className="mr-2 h-4 w-4" />
+              Générer
+            </Button>
+          </div>
         </div>
 
         {/* Filtres */}
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center space-x-4">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
-                <input
-                  placeholder="Rechercher un rapport..."
-                  className="w-full pl-9 pr-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                />
+              <div className="flex items-center space-x-2">
+                <Calendar className="h-4 w-4 text-gray-500" />
+                <Label>Période:</Label>
+                <Select value={selectedPeriod} onValueChange={setSelectedPeriod}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {periods.map((period) => (
+                      <SelectItem key={period.value} value={period.value}>
+                        {period.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              <Button variant="outline">
-                <Filter className="mr-2 h-4 w-4" />
-                Filtrer
-              </Button>
-              <Button variant="outline">
-                <Calendar className="mr-2 h-4 w-4" />
-                Période
-              </Button>
+              
+              <div className="flex items-center space-x-2">
+                <Filter className="h-4 w-4 text-gray-500" />
+                <Label>Type de rapport:</Label>
+                <Select value={selectedReport} onValueChange={setSelectedReport}>
+                  <SelectTrigger className="w-48">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {reportTypes.map((type) => (
+                      <SelectItem key={type.value} value={type.value}>
+                        {type.label}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardContent>
         </Card>
 
-        {/* Liste des rapports */}
-        <div className="grid gap-4">
-          {reports.map((report) => (
-            <Card key={report.id} className="hover:shadow-md transition-shadow">
-              <CardContent className="pt-6">
+        {/* KPIs Principaux */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Revenus Totaux</CardTitle>
+              <DollarSign className="h-4 w-4 text-green-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-green-600">
+                {(kpis.total_revenue || 0).toLocaleString()} FCFA
+              </div>
+              <p className="text-xs text-gray-600">
+                <TrendingUp className="inline h-3 w-3 mr-1" />
+                +12% vs période précédente
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Dépenses Totales</CardTitle>
+              <DollarSign className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">
+                {(kpis.total_expenses || 0).toLocaleString()} FCFA
+              </div>
+              <p className="text-xs text-gray-600">
+                <TrendingDown className="inline h-3 w-3 mr-1" />
+                -5% vs période précédente
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Bénéfice Net</CardTitle>
+              <TrendingUp className="h-4 w-4 text-blue-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-blue-600">
+                {(kpis.net_profit || 0).toLocaleString()} FCFA
+              </div>
+              <p className="text-xs text-gray-600">
+                <TrendingUp className="inline h-3 w-3 mr-1" />
+                +18% vs période précédente
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Animaux</CardTitle>
+              <Milk className="h-4 w-4 text-purple-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-purple-600">
+                {kpis.total_animals}
+              </div>
+              <p className="text-xs text-gray-600">
+                Bovins + Volailles
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Graphiques et Analyses */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {/* Production par Type */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Production par Type</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center space-x-4">
-                    <div className={`p-3 rounded-lg ${getTypeColor(report.type)} text-white`}>
-                      <FileText className="h-6 w-6" />
-                    </div>
-                    <div>
-                      <h3 className="text-lg font-semibold">{report.title}</h3>
-                      <p className="text-sm text-gray-600">
-                        Période: {report.period} • 
-                        Généré le {new Date(report.generated_at).toLocaleDateString("fr-FR")}
-                      </p>
-                      <div className="flex items-center space-x-2 mt-1">
-                        <Badge className={`${getTypeColor(report.type)} text-white`}>
-                          {getTypeLabel(report.type)}
-                        </Badge>
-                        <Badge className={getStatusColor(report.status)}>
-                          {getStatusLabel(report.status)}
-                        </Badge>
-                      </div>
-                    </div>
-                  </div>
-                  
                   <div className="flex items-center space-x-2">
-                    {report.status === "completed" && (
-                      <>
-                        <Button variant="outline" size="sm">
-                          <Download className="mr-2 h-4 w-4" />
-                          Télécharger
-                        </Button>
-                        <Button variant="outline" size="sm">
-                          Voir
-                        </Button>
-                      </>
-                    )}
-                    {report.status === "generating" && (
-                      <Button variant="outline" size="sm" disabled>
-                        Génération...
-                      </Button>
-                    )}
+                    <Egg className="h-4 w-4 text-yellow-500" />
+                    <span className="text-sm">Volailles</span>
+                  </div>
+                  <span className="font-medium">{poultryFlocks.length} lots</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Milk className="h-4 w-4 text-purple-500" />
+                    <span className="text-sm">Bovins</span>
+                  </div>
+                  <span className="font-medium">{cattle.length} têtes</span>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center space-x-2">
+                    <Wheat className="h-4 w-4 text-green-500" />
+                    <span className="text-sm">Cultures</span>
+                  </div>
+                  <span className="font-medium">{crops.length} parcelles</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Alertes Stock */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Alertes Stock</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                {stockItems.slice(0, 5).map((item) => (
+                  <div key={item.id} className="flex items-center justify-between p-2 bg-red-50 rounded">
+                    <div>
+                      <p className="text-sm font-medium text-red-800">{item.name}</p>
+                      <p className="text-xs text-red-600">
+                        Stock: {item.current_stock} {item.unit}
+                      </p>
+                    </div>
+                    <Package className="h-4 w-4 text-red-500" />
+                  </div>
+                ))}
+                {stockItems.length === 0 && (
+                  <p className="text-sm text-gray-500 text-center py-4">
+                    Aucune alerte de stock
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Tableau de Bord Détaillé */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Tableau de Bord Détaillé</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-4 md:grid-cols-3">
+              {/* Volailles */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center">
+                  <Egg className="mr-2 h-5 w-5 text-yellow-500" />
+                  Volailles
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total lots:</span>
+                    <span className="font-medium">{poultryFlocks.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total volailles:</span>
+                    <span className="font-medium">
+                      {poultryFlocks.reduce((sum, flock) => sum + flock.current_quantity, 0)}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Lots actifs:</span>
+                    <span className="font-medium">
+                      {poultryFlocks.filter(flock => flock.status === "active").length}
+                    </span>
                   </div>
                 </div>
+              </div>
 
-                {/* Résumé du rapport */}
-                {report.summary && (
-                  <div className="mt-4 grid grid-cols-2 md:grid-cols-4 gap-4">
-                    {Object.entries(report.summary).map(([key, value]) => (
-                      <div key={key} className="text-center p-3 bg-gray-50 rounded-lg">
-                        <p className="text-sm text-gray-600 capitalize">
-                          {key.replace(/_/g, ' ')}
-                        </p>
-                        <p className="text-lg font-bold text-gray-900">
-                          {typeof value === 'number' 
-                            ? value.toLocaleString() + (key.includes('rate') || key.includes('score') ? '%' : '')
-                            : value
-                          }
-                        </p>
-                      </div>
-                    ))}
+              {/* Bovins */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center">
+                  <Milk className="mr-2 h-5 w-5 text-purple-500" />
+                  Bovins
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total bovins:</span>
+                    <span className="font-medium">{cattle.length}</span>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-
-        {/* Statistiques des rapports */}
-        <div className="grid gap-4 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Rapports Générés</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-green-600">
-                {reports.filter(r => r.status === "completed").length}
+                  <div className="flex justify-between">
+                    <span className="text-sm">Femelles:</span>
+                    <span className="font-medium">
+                      {cattle.filter(animal => animal.gender === "female").length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Mâles:</span>
+                    <span className="font-medium">
+                      {cattle.filter(animal => animal.gender === "male").length}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">Ce mois-ci</p>
-            </CardContent>
-          </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">En Cours</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-yellow-600">
-                {reports.filter(r => r.status === "generating").length}
+              {/* Cultures */}
+              <div className="space-y-3">
+                <h3 className="font-semibold text-lg flex items-center">
+                  <Wheat className="mr-2 h-5 w-5 text-green-500" />
+                  Cultures
+                </h3>
+                <div className="space-y-2">
+                  <div className="flex justify-between">
+                    <span className="text-sm">Total parcelles:</span>
+                    <span className="font-medium">{crops.length}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">En croissance:</span>
+                    <span className="font-medium">
+                      {crops.filter(crop => crop.status === "growing").length}
+                    </span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-sm">Récoltées:</span>
+                    <span className="font-medium">
+                      {crops.filter(crop => crop.status === "harvested").length}
+                    </span>
+                  </div>
+                </div>
               </div>
-              <p className="text-sm text-gray-600">Génération en cours</p>
-            </CardContent>
-          </Card>
+            </div>
+          </CardContent>
+        </Card>
 
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Types Disponibles</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-3xl font-bold text-blue-600">5</div>
-              <p className="text-sm text-gray-600">Types de rapports</p>
-            </CardContent>
-          </Card>
-        </div>
+        {/* Recommandations */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Recommandations</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              <div className="p-3 bg-blue-50 rounded-lg">
+                <p className="text-sm text-blue-800">
+                  <strong>Optimisation des stocks:</strong> Considérez réduire les commandes d'aliments pour volailles 
+                  car le stock actuel est suffisant pour 2 mois.
+                </p>
+              </div>
+              <div className="p-3 bg-green-50 rounded-lg">
+                <p className="text-sm text-green-800">
+                  <strong>Production:</strong> Les rendements de maïs sont excellents cette saison. 
+                  Planifiez une récolte supplémentaire.
+                </p>
+              </div>
+              <div className="p-3 bg-yellow-50 rounded-lg">
+                <p className="text-sm text-yellow-800">
+                  <strong>Maintenance:</strong> Le poulailler principal nécessite un nettoyage approfondi 
+                  prévu pour la semaine prochaine.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
     </Layout>
   )

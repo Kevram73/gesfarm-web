@@ -4,10 +4,12 @@ import { Layout } from "@/lib/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
-import { usePoultryFlocks } from "@/lib/hooks/use-fake-data"
+import { usePoultryFlocks } from "@/lib/hooks/use-api-data"
+import { useRouter } from "next/navigation"
 import { Egg, Plus, Users, TrendingUp, Calendar } from "lucide-react"
 
 export default function PoultryPage() {
+  const router = useRouter()
   const { data: flocksData, isLoading } = usePoultryFlocks({ per_page: 20 })
 
   if (isLoading) {
@@ -30,7 +32,12 @@ export default function PoultryPage() {
     )
   }
 
-  const flocks = flocksData?.items || []
+  const flocks = flocksData?.data || []
+  
+  // Debug: Log des données pour vérifier
+  console.log("Poultry flocks data:", flocksData)
+  console.log("Flocks array:", flocks)
+  console.log("First flock:", flocks[0])
 
   const getTypeLabel = (type: string) => {
     switch (type) {
@@ -63,7 +70,7 @@ export default function PoultryPage() {
               Suivi des lots de volailles et de leur production.
             </p>
           </div>
-          <Button>
+          <Button onClick={() => router.push('/poultry/create')}>
             <Plus className="mr-2 h-4 w-4" />
             Nouveau lot
           </Button>
@@ -209,8 +216,13 @@ export default function PoultryPage() {
                     </div>
                     
                     <div className="pt-2 flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Enregistrer
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/poultry/edit/${flock.id}`)}
+                      >
+                        Modifier
                       </Button>
                       <Button variant="outline" size="sm" className="flex-1">
                         Détails

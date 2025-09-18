@@ -19,7 +19,7 @@ import {
 } from "lucide-react"
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: Home },
+  { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Stocks", href: "/stocks", icon: Package },
   { name: "Volailles", href: "/poultry", icon: Egg },
   { name: "Bovins", href: "/cattle", icon: Milk },

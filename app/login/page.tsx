@@ -7,42 +7,26 @@ import { Input } from "@/lib/components/ui/input"
 import { Label } from "@/lib/components/ui/label"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react"
+import { useLogin } from "@/lib/hooks/use-auth"
 import toast from "react-hot-toast"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
+  const [email, setEmail] = useState("admin@gesfarm.com")
+  const [password, setPassword] = useState("password")
   const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  
+  const loginMutation = useLogin()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
 
     try {
-      // Simulation d'authentification avec fake data
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      if (email === "admin@gesfarm.com" && password === "admin123") {
-        // Stocker les données utilisateur
-        localStorage.setItem("user", JSON.stringify({
-          id: 1,
-          name: "Admin GESFARM",
-          email: "admin@gesfarm.com",
-          role: "admin"
-        }))
-        localStorage.setItem("token", "fake-jwt-token")
-        
-        toast.success("Connexion réussie !")
-        router.push("/")
-      } else {
-        toast.error("Email ou mot de passe incorrect")
-      }
-    } catch (error) {
-      toast.error("Erreur de connexion")
-    } finally {
-      setIsLoading(false)
+      await loginMutation.mutateAsync({ email, password })
+      toast.success("Connexion réussie !")
+      router.push("/")
+    } catch (error: any) {
+      toast.error(`Erreur de connexion: ${error.response?.data?.message || error.message}`)
     }
   }
 
@@ -91,7 +75,7 @@ export default function LoginPage() {
                   <Input
                     id="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="admin123"
+                    placeholder="password"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
@@ -116,9 +100,9 @@ export default function LoginPage() {
               <Button
                 type="submit"
                 className="w-full bg-green-600 hover:bg-green-700 text-white"
-                disabled={isLoading}
+                disabled={loginMutation.isPending}
               >
-                {isLoading ? (
+                {loginMutation.isPending ? (
                   <div className="flex items-center">
                     <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                     Connexion...
@@ -136,7 +120,7 @@ export default function LoginPage() {
             <div className="mt-6 p-4 bg-gray-700 rounded-lg">
               <h3 className="text-sm font-medium text-gray-300 mb-2">Compte de test :</h3>
               <p className="text-xs text-gray-400">Email: admin@gesfarm.com</p>
-              <p className="text-xs text-gray-400">Mot de passe: admin123</p>
+              <p className="text-xs text-gray-400">Mot de passe: password</p>
             </div>
           </CardContent>
         </Card>

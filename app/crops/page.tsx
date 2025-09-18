@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/ca
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
 import { Input } from "@/lib/components/ui/input"
-import { useCrops } from "@/lib/hooks/use-fake-data"
+import { useCrops } from "@/lib/hooks/use-api-data"
 import { Wheat, Plus, Search, Filter, Calendar, MapPin, TrendingUp, Droplets } from "lucide-react"
 
 export default function CropsPage() {
@@ -31,7 +31,7 @@ export default function CropsPage() {
     )
   }
 
-  const crops = cropsData?.items || []
+  const crops = cropsData?.data || []
 
   const getStatusLabel = (status: string) => {
     switch (status) {
@@ -261,8 +261,13 @@ export default function CropsPage() {
                     )}
                     
                     <div className="pt-2 flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Activité
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/crops/edit/${crop.id}`)}
+                      >
+                        Modifier
                       </Button>
                       <Button variant="outline" size="sm" className="flex-1">
                         Détails

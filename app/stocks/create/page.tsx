@@ -2,116 +2,104 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Layout } from "@/lib/components/layout"
+import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Input } from "@/lib/components/ui/input"
 import { Label } from "@/lib/components/ui/label"
 import { Textarea } from "@/lib/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/lib/components/ui/select"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/lib/components/ui/card"
+import { useCreateStockItem } from "@/lib/hooks/use-api-data"
+import { toast } from "react-hot-toast"
 import { ArrowLeft, Save, Package } from "lucide-react"
-import toast from "react-hot-toast"
-import { Layout } from "@/lib/components/layout/layout"
 
-interface StockItem {
-  id: number
-  name: string
-  category: string
-  quantity: number
-  unit: string
-  minThreshold: number
-  maxThreshold: number
-  cost: number
-  supplier: string
-  description: string
-  location: string
-  expiryDate?: string
-  status: "available" | "low_stock" | "out_of_stock"
-}
-
-export default function CreateStockPage() {
+export default function CreateStockItemPage() {
   const router = useRouter()
-  const [isLoading, setIsLoading] = useState(false)
+  const createStockItem = useCreateStockItem()
+  
   const [formData, setFormData] = useState({
     name: "",
-    category: "",
-    quantity: "",
-    unit: "",
-    minThreshold: "",
-    maxThreshold: "",
-    cost: "",
-    supplier: "",
     description: "",
-    location: "",
-    expiryDate: ""
+    sku: "",
+    category_id: "",
+    unit: "",
+    current_quantity: "",
+    minimum_quantity: "",
+    unit_cost: "",
+    expiry_date: "",
+    supplier: "",
+    notes: ""
   })
 
-  const categories = [
-    "Aliments",
-    "Médicaments",
-    "Équipements",
-    "Semences",
-    "Engrais",
-    "Outils",
-    "Matériel",
-    "Autres"
+  const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const stockCategories = [
+    { id: 1, name: "Aliments pour Volailles", type: "animal_feed" },
+    { id: 2, name: "Aliments pour Bovins", type: "animal_feed" },
+    { id: 3, name: "Engrais", type: "agricultural_inputs" },
+    { id: 4, name: "Semences", type: "agricultural_inputs" },
+    { id: 5, name: "Produits Vétérinaires", type: "veterinary_products" },
+    { id: 6, name: "Équipements", type: "equipment" },
+    { id: 7, name: "Matériel d'Élevage", type: "equipment" }
   ]
 
   const units = [
-    "kg",
-    "g",
-    "L",
-    "mL",
-    "pièces",
-    "sacs",
-    "bouteilles",
-    "boîtes",
-    "mètres",
-    "m²"
+    "kg", "g", "L", "ml", "unité", "paquet", "carton", "sac", "bouteille", "dose"
   ]
+
+  const validateForm = () => {
+    const newErrors: Record<string, string> = {}
+
+    if (!formData.name.trim()) newErrors.name = "Le nom est requis"
+    if (!formData.sku.trim()) newErrors.sku = "Le SKU est requis"
+    if (!formData.category_id) newErrors.category_id = "La catégorie est requise"
+    if (!formData.unit) newErrors.unit = "L'unité est requise"
+    if (!formData.current_quantity || parseFloat(formData.current_quantity) < 0) {
+      newErrors.current_quantity = "La quantité actuelle doit être positive"
+    }
+    if (!formData.minimum_quantity || parseFloat(formData.minimum_quantity) < 0) {
+      newErrors.minimum_quantity = "La quantité minimum doit être positive"
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    setIsLoading(true)
+    
+    if (!validateForm()) {
+      toast.error("Veuillez corriger les erreurs dans le formulaire")
+      return
+    }
 
     try {
-      // Simulation de création avec fake data
-      await new Promise(resolve => setTimeout(resolve, 1000))
-      
-      const newStockItem: StockItem = {
-        id: Date.now(),
+      await createStockItem.mutateAsync({
         name: formData.name,
-        category: formData.category,
-        quantity: parseFloat(formData.quantity),
+        description: formData.description || null,
+        sku: formData.sku,
+        category_id: parseInt(formData.category_id),
         unit: formData.unit,
-        minThreshold: parseFloat(formData.minThreshold),
-        maxThreshold: parseFloat(formData.maxThreshold),
-        cost: parseFloat(formData.cost),
-        supplier: formData.supplier,
-        description: formData.description,
-        location: formData.location,
-        expiryDate: formData.expiryDate || undefined,
-        status: parseFloat(formData.quantity) <= parseFloat(formData.minThreshold) ? "low_stock" : "available"
-      }
-
-      // Récupérer les stocks existants
-      const existingStocks = JSON.parse(localStorage.getItem("stocks") || "[]")
-      existingStocks.push(newStockItem)
-      localStorage.setItem("stocks", JSON.stringify(existingStocks))
-
-      toast.success("Stock créé avec succès !")
+        current_quantity: parseFloat(formData.current_quantity),
+        minimum_quantity: parseFloat(formData.minimum_quantity),
+        unit_cost: formData.unit_cost ? parseFloat(formData.unit_cost) : null,
+        expiry_date: formData.expiry_date || null,
+        supplier: formData.supplier || null,
+        notes: formData.notes || null
+      })
+      
+      toast.success("Article de stock créé avec succès !")
       router.push("/stocks")
-    } catch (error) {
-      toast.error("Erreur lors de la création du stock")
-    } finally {
-      setIsLoading(false)
+    } catch (error: any) {
+      toast.error(`Erreur lors de la création: ${error.response?.data?.message || error.message}`)
     }
   }
 
   const handleInputChange = (field: string, value: string) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
+    setFormData(prev => ({ ...prev, [field]: value }))
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: "" }))
+    }
   }
 
   return (
@@ -122,216 +110,211 @@ export default function CreateStockPage() {
           <div className="flex items-center space-x-4">
             <Button
               variant="outline"
+              size="sm"
               onClick={() => router.back()}
-              className="hover:bg-gray-700"
+              className="flex items-center"
             >
-              <ArrowLeft className="w-4 h-4 mr-2" />
+              <ArrowLeft className="mr-2 h-4 w-4" />
               Retour
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-white">Nouveau Stock</h1>
-              <p className="text-gray-400 mt-2">Ajouter un nouvel article au stock</p>
+              <h1 className="text-3xl font-bold tracking-tight text-white">Nouvel Article de Stock</h1>
+              <p className="text-gray-300 mt-2">
+                Ajouter un nouvel article à votre inventaire
+              </p>
             </div>
           </div>
         </div>
 
         {/* Formulaire */}
-        <Card className="bg-gray-800 border-gray-700">
+        <Card>
           <CardHeader>
-            <CardTitle className="text-white flex items-center">
-              <Package className="w-5 h-5 mr-2" />
-              Informations du Stock
+            <CardTitle className="flex items-center">
+              <Package className="mr-2 h-5 w-5" />
+              Informations de l'article
             </CardTitle>
-            <CardDescription className="text-gray-400">
-              Remplissez les informations pour créer un nouvel article de stock
-            </CardDescription>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-6">
-              <div className="grid gap-6 md:grid-cols-2">
-                {/* Informations de base */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Informations de Base</h3>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="name" className="text-gray-300">Nom de l'article *</Label>
-                    <Input
-                      id="name"
-                      value={formData.name}
-                      onChange={(e) => handleInputChange("name", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Ex: Aliment pour poulets"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="category" className="text-gray-300">Catégorie *</Label>
-                    <Select value={formData.category} onValueChange={(value) => handleInputChange("category", value)}>
-                      <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                        <SelectValue placeholder="Sélectionner une catégorie" />
-                      </SelectTrigger>
-                      <SelectContent className="bg-gray-800 border-gray-600">
-                        {categories.map((category) => (
-                          <SelectItem key={category} value={category} className="text-white hover:bg-gray-700">
-                            {category}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="description" className="text-gray-300">Description</Label>
-                    <Textarea
-                      id="description"
-                      value={formData.description}
-                      onChange={(e) => handleInputChange("description", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Description détaillée de l'article..."
-                      rows={3}
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="location" className="text-gray-300">Emplacement *</Label>
-                    <Input
-                      id="location"
-                      value={formData.location}
-                      onChange={(e) => handleInputChange("location", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Ex: Entrepôt A, Étagère 3"
-                      required
-                    />
-                  </div>
+              <div className="grid gap-4 md:grid-cols-2">
+                {/* Nom */}
+                <div className="space-y-2">
+                  <Label htmlFor="name">Nom de l'article *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => handleInputChange("name", e.target.value)}
+                    placeholder="Ex: Aliment Pondeuses Premium"
+                    className={errors.name ? "border-red-500" : ""}
+                  />
+                  {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
                 </div>
 
-                {/* Quantité et seuils */}
-                <div className="space-y-4">
-                  <h3 className="text-lg font-semibold text-white">Quantité et Seuils</h3>
-                  
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="quantity" className="text-gray-300">Quantité actuelle *</Label>
-                      <Input
-                        id="quantity"
-                        type="number"
-                        step="0.01"
-                        value={formData.quantity}
-                        onChange={(e) => handleInputChange("quantity", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white"
-                        placeholder="0"
-                        required
-                      />
-                    </div>
+                {/* SKU */}
+                <div className="space-y-2">
+                  <Label htmlFor="sku">Code SKU *</Label>
+                  <Input
+                    id="sku"
+                    value={formData.sku}
+                    onChange={(e) => handleInputChange("sku", e.target.value)}
+                    placeholder="Ex: ALM-PON-001"
+                    className={errors.sku ? "border-red-500" : ""}
+                  />
+                  {errors.sku && <p className="text-sm text-red-500">{errors.sku}</p>}
+                </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="unit" className="text-gray-300">Unité *</Label>
-                      <Select value={formData.unit} onValueChange={(value) => handleInputChange("unit", value)}>
-                        <SelectTrigger className="bg-gray-700 border-gray-600 text-white">
-                          <SelectValue placeholder="Unité" />
-                        </SelectTrigger>
-                        <SelectContent className="bg-gray-800 border-gray-600">
-                          {units.map((unit) => (
-                            <SelectItem key={unit} value={unit} className="text-white hover:bg-gray-700">
-                              {unit}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
+                {/* Catégorie */}
+                <div className="space-y-2">
+                  <Label htmlFor="category">Catégorie *</Label>
+                  <Select value={formData.category_id} onValueChange={(value) => handleInputChange("category_id", value)}>
+                    <SelectTrigger className={errors.category_id ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Sélectionner une catégorie" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {stockCategories.map((category) => (
+                        <SelectItem key={category.id} value={category.id.toString()}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.category_id && <p className="text-sm text-red-500">{errors.category_id}</p>}
+                </div>
 
-                  <div className="grid gap-4 md:grid-cols-2">
-                    <div className="space-y-2">
-                      <Label htmlFor="minThreshold" className="text-gray-300">Seuil minimum *</Label>
-                      <Input
-                        id="minThreshold"
-                        type="number"
-                        step="0.01"
-                        value={formData.minThreshold}
-                        onChange={(e) => handleInputChange("minThreshold", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white"
-                        placeholder="0"
-                        required
-                      />
-                    </div>
+                {/* Unité */}
+                <div className="space-y-2">
+                  <Label htmlFor="unit">Unité *</Label>
+                  <Select value={formData.unit} onValueChange={(value) => handleInputChange("unit", value)}>
+                    <SelectTrigger className={errors.unit ? "border-red-500" : ""}>
+                      <SelectValue placeholder="Sélectionner une unité" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {units.map((unit) => (
+                        <SelectItem key={unit} value={unit}>
+                          {unit}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.unit && <p className="text-sm text-red-500">{errors.unit}</p>}
+                </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="maxThreshold" className="text-gray-300">Seuil maximum</Label>
-                      <Input
-                        id="maxThreshold"
-                        type="number"
-                        step="0.01"
-                        value={formData.maxThreshold}
-                        onChange={(e) => handleInputChange("maxThreshold", e.target.value)}
-                        className="bg-gray-700 border-gray-600 text-white"
-                        placeholder="0"
-                      />
-                    </div>
-                  </div>
+                {/* Quantité actuelle */}
+                <div className="space-y-2">
+                  <Label htmlFor="current_quantity">Quantité actuelle *</Label>
+                  <Input
+                    id="current_quantity"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.current_quantity}
+                    onChange={(e) => handleInputChange("current_quantity", e.target.value)}
+                    placeholder="0.00"
+                    className={errors.current_quantity ? "border-red-500" : ""}
+                  />
+                  {errors.current_quantity && <p className="text-sm text-red-500">{errors.current_quantity}</p>}
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="cost" className="text-gray-300">Coût unitaire (€)</Label>
-                    <Input
-                      id="cost"
-                      type="number"
-                      step="0.01"
-                      value={formData.cost}
-                      onChange={(e) => handleInputChange("cost", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="0.00"
-                    />
-                  </div>
+                {/* Quantité minimum */}
+                <div className="space-y-2">
+                  <Label htmlFor="minimum_quantity">Quantité minimum *</Label>
+                  <Input
+                    id="minimum_quantity"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.minimum_quantity}
+                    onChange={(e) => handleInputChange("minimum_quantity", e.target.value)}
+                    placeholder="0.00"
+                    className={errors.minimum_quantity ? "border-red-500" : ""}
+                  />
+                  {errors.minimum_quantity && <p className="text-sm text-red-500">{errors.minimum_quantity}</p>}
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="supplier" className="text-gray-300">Fournisseur</Label>
-                    <Input
-                      id="supplier"
-                      value={formData.supplier}
-                      onChange={(e) => handleInputChange("supplier", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                      placeholder="Nom du fournisseur"
-                    />
-                  </div>
+                {/* Prix unitaire */}
+                <div className="space-y-2">
+                  <Label htmlFor="unit_cost">Prix unitaire (FCFA)</Label>
+                  <Input
+                    id="unit_cost"
+                    type="number"
+                    step="0.01"
+                    min="0"
+                    value={formData.unit_cost}
+                    onChange={(e) => handleInputChange("unit_cost", e.target.value)}
+                    placeholder="0.00"
+                  />
+                </div>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="expiryDate" className="text-gray-300">Date d'expiration</Label>
-                    <Input
-                      id="expiryDate"
-                      type="date"
-                      value={formData.expiryDate}
-                      onChange={(e) => handleInputChange("expiryDate", e.target.value)}
-                      className="bg-gray-700 border-gray-600 text-white"
-                    />
-                  </div>
+                {/* Date d'expiration */}
+                <div className="space-y-2">
+                  <Label htmlFor="expiry_date">Date d'expiration</Label>
+                  <Input
+                    id="expiry_date"
+                    type="date"
+                    value={formData.expiry_date}
+                    onChange={(e) => handleInputChange("expiry_date", e.target.value)}
+                  />
+                </div>
+
+                {/* Fournisseur */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="supplier">Fournisseur</Label>
+                  <Input
+                    id="supplier"
+                    value={formData.supplier}
+                    onChange={(e) => handleInputChange("supplier", e.target.value)}
+                    placeholder="Ex: AgroFeed Côte d'Ivoire"
+                  />
+                </div>
+
+                {/* Description */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => handleInputChange("description", e.target.value)}
+                    placeholder="Description détaillée de l'article..."
+                    rows={3}
+                  />
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-2 md:col-span-2">
+                  <Label htmlFor="notes">Notes</Label>
+                  <Textarea
+                    id="notes"
+                    value={formData.notes}
+                    onChange={(e) => handleInputChange("notes", e.target.value)}
+                    placeholder="Notes supplémentaires..."
+                    rows={2}
+                  />
                 </div>
               </div>
 
-              {/* Boutons d'action */}
-              <div className="flex justify-end space-x-4 pt-6 border-t border-gray-700">
+              {/* Boutons */}
+              <div className="flex justify-end space-x-4 pt-6">
                 <Button
                   type="button"
                   variant="outline"
                   onClick={() => router.back()}
-                  className="hover:bg-gray-700"
                 >
                   Annuler
                 </Button>
                 <Button
                   type="submit"
+                  disabled={createStockItem.isPending}
                   className="bg-green-600 hover:bg-green-700"
-                  disabled={isLoading}
                 >
-                  {isLoading ? (
+                  {createStockItem.isPending ? (
                     <div className="flex items-center">
                       <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
                       Création...
                     </div>
                   ) : (
                     <div className="flex items-center">
-                      <Save className="w-4 h-4 mr-2" />
-                      Créer le Stock
+                      <Save className="mr-2 h-4 w-4" />
+                      Créer l'article
                     </div>
                   )}
                 </Button>

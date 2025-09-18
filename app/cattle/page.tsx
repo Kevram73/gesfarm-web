@@ -1,15 +1,32 @@
 "use client"
 
+import { AuthGuard } from "@/lib/components/auth/auth-guard"
 import { Layout } from "@/lib/components/layout"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
 import { Input } from "@/lib/components/ui/input"
-import { useCattle } from "@/lib/hooks/use-fake-data"
-import { Milk, Plus, Search, Filter, Weight, Calendar, MapPin } from "lucide-react"
+import { useCattle, useDeleteCattle } from "@/lib/hooks/use-api-data"
+import { useRouter } from "next/navigation"
+import { Milk, Plus, Search, Filter, Weight, Calendar, MapPin, Trash2 } from "lucide-react"
+import { useState } from "react"
+import { toast } from "react-hot-toast"
+import { ConfirmDialog } from "@/lib/components/ui/confirm-dialog"
 
 export default function CattlePage() {
+  const router = useRouter()
   const { data: cattleData, isLoading } = useCattle({ per_page: 20 })
+  const deleteCattleMutation = useDeleteCattle()
+  
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    cattleId: number | null
+    cattleName: string
+  }>({
+    isOpen: false,
+    cattleId: null,
+    cattleName: ""
+  })
 
   if (isLoading) {
     return (
@@ -31,7 +48,12 @@ export default function CattlePage() {
     )
   }
 
-  const cattle = cattleData?.items || []
+  const cattle = cattleData?.data || []
+  
+  // Debug: Log des données pour vérifier
+  console.log("Cattle data:", cattleData)
+  console.log("Cattle array:", cattle)
+  console.log("First cattle weight:", cattle[0]?.current_weight, typeof cattle[0]?.current_weight)
 
   const getGenderLabel = (gender: string) => {
     return gender === "female" ? "Femelle" : "Mâle"
@@ -48,8 +70,30 @@ export default function CattlePage() {
     return ageInMonths
   }
 
+  const handleDelete = async () => {
+    if (!deleteDialog.cattleId) return
+
+    try {
+      await deleteCattleMutation.mutateAsync(deleteDialog.cattleId)
+      toast.success("Bovin supprimé avec succès")
+      setDeleteDialog({ isOpen: false, cattleId: null, cattleName: "" })
+    } catch (error: any) {
+      console.error("Error deleting cattle:", error)
+      toast.error(error.response?.data?.message || "Erreur lors de la suppression du bovin")
+    }
+  }
+
+  const openDeleteDialog = (cattleId: number, cattleName: string) => {
+    setDeleteDialog({
+      isOpen: true,
+      cattleId,
+      cattleName
+    })
+  }
+
   return (
-    <Layout>
+    <AuthGuard>
+      <Layout>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -59,7 +103,7 @@ export default function CattlePage() {
               Suivi du troupeau bovin et de la production laitière.
             </p>
           </div>
-          <Button>
+          <Button onClick={() => router.push("/cattle/add")}>
             <Plus className="mr-2 h-4 w-4" />
             Ajouter un animal
           </Button>
@@ -119,9 +163,20 @@ export default function CattlePage() {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">
-                {cattle.length > 0 
-                  ? Math.round(cattle.reduce((sum, animal) => sum + (animal.current_weight || 0), 0) / cattle.length)
-                  : 0} kg
+                {(() => {
+                  if (cattle.length === 0) return "0 kg"
+                  
+                  const totalWeight = cattle.reduce((sum, animal) => {
+                    const weight = parseFloat(animal.current_weight) || 0
+                    console.log(`Animal ${animal.name}: weight=${animal.current_weight}, parsed=${weight}`)
+                    return sum + weight
+                  }, 0)
+                  
+                  const average = Math.round(totalWeight / cattle.length)
+                  console.log(`Total weight: ${totalWeight}, Average: ${average}`)
+                  
+                  return `${average} kg`
+                })()}
               </div>
               <p className="text-xs text-gray-600">
                 Poids moyen du troupeau
@@ -223,11 +278,29 @@ export default function CattlePage() {
                     )}
                     
                     <div className="pt-2 flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Enregistrer
-                      </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/cattle/details/${animal.id}`)}
+                      >
                         Détails
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/cattle/edit/${animal.id}`)}
+                      >
+                        Modifier
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => openDeleteDialog(animal.id, animal.name || animal.tag_number)}
+                      >
+                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
@@ -250,7 +323,21 @@ export default function CattlePage() {
             </div>
           </div>
         )}
+
+        {/* Dialogue de confirmation de suppression */}
+        <ConfirmDialog
+          isOpen={deleteDialog.isOpen}
+          onClose={() => setDeleteDialog({ isOpen: false, cattleId: null, cattleName: "" })}
+          onConfirm={handleDelete}
+          title="Supprimer le bovin"
+          message={`Êtes-vous sûr de vouloir supprimer ${deleteDialog.cattleName} ? Cette action est irréversible.`}
+          confirmText="Supprimer"
+          cancelText="Annuler"
+          isLoading={deleteCattleMutation.isPending}
+          variant="destructive"
+        />
       </div>
-    </Layout>
+      </Layout>
+    </AuthGuard>
   )
 }

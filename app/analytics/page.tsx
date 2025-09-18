@@ -11,7 +11,8 @@ import {
   Activity,
   Target,
   DollarSign,
-  Calendar
+  Calendar,
+  Milk
 } from "lucide-react"
 
 export default function AnalyticsPage() {

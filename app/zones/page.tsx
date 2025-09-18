@@ -6,11 +6,66 @@ import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
 import { Input } from "@/lib/components/ui/input"
 import { Map } from "@/lib/components/maps"
-import { MapPin, Plus, Search, Filter, Building, TreePine, Droplets, Wheat } from "lucide-react"
+import { useZones, useDeleteZone } from "@/lib/hooks/use-api-data"
+import { ConfirmDialog } from "@/lib/components/ui/confirm-dialog"
+import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { MapPin, Plus, Search, Filter, Building, TreePine, Droplets, Wheat, Edit, Trash2, BarChart3 } from "lucide-react"
 
 export default function ZonesPage() {
-  // Données factices pour les zones
-  const zones = [
+  const { data: zonesData, isLoading } = useZones({ per_page: 20 })
+  const deleteZoneMutation = useDeleteZone()
+  const router = useRouter()
+  const [deleteDialog, setDeleteDialog] = useState<{
+    isOpen: boolean
+    zoneId: number | null
+    zoneName: string
+  }>({
+    isOpen: false,
+    zoneId: null,
+    zoneName: ""
+  })
+  
+  if (isLoading) {
+    return (
+      <Layout>
+        <div className="space-y-6">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-white">Gestion des Zones</h1>
+            <p className="text-gray-300 mt-2">
+              Chargement des zones de l'exploitation...
+            </p>
+          </div>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[...Array(6)].map((_, i) => (
+              <div key={i} className="h-48 bg-gray-700 rounded-lg animate-pulse"></div>
+            ))}
+          </div>
+        </div>
+      </Layout>
+    )
+  }
+
+  const zones = zonesData?.data || []
+  
+  // Fonctions de gestion
+  const handleDelete = async () => {
+    if (deleteDialog.zoneId) {
+      try {
+        await deleteZoneMutation.mutateAsync(deleteDialog.zoneId)
+        setDeleteDialog({ isOpen: false, zoneId: null, zoneName: "" })
+      } catch (error) {
+        console.error("Erreur lors de la suppression:", error)
+      }
+    }
+  }
+
+  const openDeleteDialog = (zoneId: number, zoneName: string) => {
+    setDeleteDialog({ isOpen: true, zoneId, zoneName })
+  }
+  
+  // Données factices pour les zones (fallback)
+  const fallbackZones = [
     {
       id: 1,
       name: "Poulailler Nord",
@@ -120,7 +175,7 @@ export default function ZonesPage() {
               Visualisation et gestion des zones de votre exploitation.
             </p>
           </div>
-          <Button>
+          <Button onClick={() => router.push('/zones/add')}>
             <Plus className="mr-2 h-4 w-4" />
             Nouvelle zone
           </Button>
@@ -269,11 +324,31 @@ export default function ZonesPage() {
                     </div>
                     
                     <div className="pt-2 flex space-x-2">
-                      <Button variant="outline" size="sm" className="flex-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/zones/edit/${zone.id}`)}
+                      >
+                        <Edit className="h-3 w-3 mr-1" />
                         Modifier
                       </Button>
-                      <Button variant="outline" size="sm" className="flex-1">
-                        Statistiques
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex-1"
+                        onClick={() => router.push(`/zones/details/${zone.id}`)}
+                      >
+                        <BarChart3 className="h-3 w-3 mr-1" />
+                        Détails
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => openDeleteDialog(zone.id, zone.name)}
+                      >
+                        <Trash2 className="h-3 w-3" />
                       </Button>
                     </div>
                   </div>
@@ -283,6 +358,19 @@ export default function ZonesPage() {
           })}
         </div>
       </div>
+
+      {/* Dialog de confirmation de suppression */}
+      <ConfirmDialog
+        isOpen={deleteDialog.isOpen}
+        onClose={() => setDeleteDialog({ isOpen: false, zoneId: null, zoneName: "" })}
+        onConfirm={handleDelete}
+        title="Supprimer la zone"
+        message={`Êtes-vous sûr de vouloir supprimer la zone "${deleteDialog.zoneName}" ? Cette action est irréversible.`}
+        confirmText="Supprimer"
+        cancelText="Annuler"
+        isLoading={deleteZoneMutation.isPending}
+        variant="destructive"
+      />
     </Layout>
   )
 }
