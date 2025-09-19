@@ -1,13 +1,35 @@
 import { useEffect, useState } from 'react'
 
-let globalAuthState = false
-let globalAuthListeners: ((isAuth: boolean) => void)[] = []
+interface User {
+  id: number
+  name: string
+  email: string
+  role?: string
+}
+
+interface AuthData {
+  isAuthenticated: boolean
+  user: User | null
+  token: string | null
+}
+
+let globalAuthState: AuthData = {
+  isAuthenticated: false,
+  user: null,
+  token: null
+}
+
+let globalAuthListeners: ((authData: AuthData) => void)[] = []
 
 /**
  * Hook global pour gérer l'état d'authentification de manière sûre pour l'hydratation
  */
 export function useAuthGlobal() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [authData, setAuthData] = useState<AuthData>({
+    isAuthenticated: false,
+    user: null,
+    token: null
+  })
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
@@ -18,26 +40,33 @@ export function useAuthGlobal() {
     if (!mounted) return
 
     // Ajouter ce composant à la liste des listeners
-    globalAuthListeners.push(setIsAuthenticated)
+    globalAuthListeners.push(setAuthData)
 
     // Vérifier l'authentification côté client
     const token = localStorage.getItem("gesfarm_token")
-    const authState = !!token
+    const userStr = localStorage.getItem("gesfarm_user")
+    const user = userStr ? JSON.parse(userStr) : null
+    
+    const newAuthData: AuthData = {
+      isAuthenticated: !!token,
+      user: user,
+      token: token
+    }
     
     // Mettre à jour l'état global et local
-    globalAuthState = authState
-    setIsAuthenticated(authState)
+    globalAuthState = newAuthData
+    setAuthData(newAuthData)
     
     // Notifier tous les autres listeners
     globalAuthListeners.forEach(listener => {
-      if (listener !== setIsAuthenticated) {
-        listener(authState)
+      if (listener !== setAuthData) {
+        listener(newAuthData)
       }
     })
 
     // Cleanup
     return () => {
-      globalAuthListeners = globalAuthListeners.filter(listener => listener !== setIsAuthenticated)
+      globalAuthListeners = globalAuthListeners.filter(listener => listener !== setAuthData)
     }
   }, [mounted])
 
@@ -46,13 +75,73 @@ export function useAuthGlobal() {
     return false
   }
 
-  return isAuthenticated
+  return authData.isAuthenticated
+}
+
+/**
+ * Hook pour obtenir toutes les données d'authentification
+ */
+export function useAuthData() {
+  const [authData, setAuthData] = useState<AuthData>({
+    isAuthenticated: false,
+    user: null,
+    token: null
+  })
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  useEffect(() => {
+    if (!mounted) return
+
+    globalAuthListeners.push(setAuthData)
+    
+    // Initialiser avec l'état global actuel
+    setAuthData(globalAuthState)
+
+    return () => {
+      globalAuthListeners = globalAuthListeners.filter(listener => listener !== setAuthData)
+    }
+  }, [mounted])
+
+  if (!mounted) {
+    return {
+      isAuthenticated: false,
+      user: null,
+      token: null
+    }
+  }
+
+  return authData
 }
 
 /**
  * Fonction pour mettre à jour l'état d'authentification global
  */
-export function setAuthGlobal(isAuth: boolean) {
-  globalAuthState = isAuth
-  globalAuthListeners.forEach(listener => listener(isAuth))
+export function setAuthData(authData: AuthData) {
+  globalAuthState = authData
+  
+  // Mettre à jour le localStorage
+  if (authData.isAuthenticated && authData.token && authData.user) {
+    localStorage.setItem("gesfarm_token", authData.token)
+    localStorage.setItem("gesfarm_user", JSON.stringify(authData.user))
+  } else {
+    localStorage.removeItem("gesfarm_token")
+    localStorage.removeItem("gesfarm_user")
+  }
+  
+  globalAuthListeners.forEach(listener => listener(authData))
+}
+
+/**
+ * Fonction pour déconnecter l'utilisateur
+ */
+export function logout() {
+  setAuthData({
+    isAuthenticated: false,
+    user: null,
+    token: null
+  })
 }

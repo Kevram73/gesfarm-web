@@ -1,13 +1,101 @@
 version: '3.8'
 
 services:
-  nextjs:
-    build: .
+  # Frontend Next.js
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    container_name: gesfarm_frontend
     ports:
       - "3000:3000"
     volumes:
       - .:/app
       - /app/node_modules
+      - /app/.next
     environment:
       - NODE_ENV=development
+      - NEXT_PUBLIC_API_URL=http://backend:80/api
+      - NEXT_PUBLIC_APP_URL=http://localhost:3000
+    networks:
+      - gesfarm_network
+    depends_on:
+      - backend
     restart: unless-stopped
+
+  # Backend Laravel (référence vers le projet gesfarm)
+  backend:
+    build:
+      context: ../gesfarm
+      dockerfile: Dockerfile
+    container_name: gesfarm_backend
+    ports:
+      - "8000:80"
+    volumes:
+      - ../gesfarm:/var/www
+    environment:
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - DB_HOST=db
+      - DB_DATABASE=gesfarm
+      - DB_USERNAME=gesfarm_user
+      - DB_PASSWORD=gesfarm_password
+      - REDIS_HOST=redis
+    networks:
+      - gesfarm_network
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  # Base de données MySQL
+  db:
+    image: mysql:8.0
+    container_name: gesfarm_db
+    environment:
+      - MYSQL_DATABASE=gesfarm
+      - MYSQL_ROOT_PASSWORD=gesfarm_root_password
+      - MYSQL_USER=gesfarm_user
+      - MYSQL_PASSWORD=gesfarm_password
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - gesfarm_network
+    restart: unless-stopped
+
+  # Redis pour le cache
+  redis:
+    image: redis:7-alpine
+    container_name: gesfarm_redis
+    volumes:
+      - redis_data:/data
+    networks:
+      - gesfarm_network
+    restart: unless-stopped
+
+  # phpMyAdmin pour la gestion de la base de données
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: gesfarm_phpmyadmin
+    environment:
+      - PMA_HOST=db
+      - PMA_PORT=3306
+      - PMA_USER=gesfarm_user
+      - PMA_PASSWORD=gesfarm_password
+    ports:
+      - "8080:80"
+    networks:
+      - gesfarm_network
+    depends_on:
+      - db
+    restart: unless-stopped
+
+networks:
+  gesfarm_network:
+    driver: bridge
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local

@@ -2,136 +2,169 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { LayoutMinimal } from "@/lib/components/layout/layout-minimal"
+import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Input } from "@/lib/components/ui/input"
 import { Label } from "@/lib/components/ui/label"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/lib/components/ui/card"
-import { Eye, EyeOff, LogIn, User, Lock } from "lucide-react"
-import { useLogin } from "@/lib/hooks/use-auth"
-import toast from "react-hot-toast"
+import { Loader2, LogIn, Eye, EyeOff } from "lucide-react"
+import { useAuthGlobal } from "@/lib/hooks/use-auth-global"
+import api from "@/lib/services/api"
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("admin@gesfarm.com")
-  const [password, setPassword] = useState("password")
-  const [showPassword, setShowPassword] = useState(false)
   const router = useRouter()
-  
-  const loginMutation = useLogin()
+  const { setAuthData } = useAuthGlobal()
+  const [formData, setFormData] = useState({
+    email: "",
+    password: ""
+  })
+  const [showPassword, setShowPassword] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsLoading(true)
+    setError("")
 
     try {
-      await loginMutation.mutateAsync({ email, password })
-      toast.success("Connexion réussie !")
-      router.push("/")
-    } catch (error: any) {
-      toast.error(`Erreur de connexion: ${error.response?.data?.message || error.message}`)
+      const response = await api.post("/login", formData)
+      
+      if (response.data.success) {
+        // Stocker les données d'authentification
+        localStorage.setItem("gesfarm_token", response.data.token)
+        localStorage.setItem("gesfarm_user", JSON.stringify(response.data.user))
+        
+        // Mettre à jour le contexte d'authentification
+        setAuthData({
+          isAuthenticated: true,
+          user: response.data.user,
+          token: response.data.token
+        })
+        
+        // Rediriger vers le dashboard
+        router.push("/dashboard")
+      }
+    } catch (err: any) {
+      console.error("Erreur de connexion:", err)
+      setError(
+        err.response?.data?.message || 
+        "Erreur de connexion. Vérifiez vos identifiants."
+      )
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  return (
-    <div className="min-h-screen bg-gray-900 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* Logo et titre */}
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-green-600 rounded-full mb-4">
-            <User className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white mb-2">GESFARM</h1>
-          <p className="text-gray-400">Plateforme de Gestion Agricole</p>
-        </div>
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setFormData(prev => ({
+      ...prev,
+      [name]: value
+    }))
+  }
 
-        {/* Formulaire de connexion */}
-        <Card className="bg-gray-800 border-gray-700">
+  return (
+    <LayoutMinimal>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <Card className="w-full max-w-md">
           <CardHeader className="text-center">
-            <CardTitle className="text-2xl text-white">Connexion</CardTitle>
-            <CardDescription className="text-gray-400">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100">
+              <LogIn className="h-8 w-8 text-green-600" />
+            </div>
+            <CardTitle className="text-2xl font-bold text-gray-900">
+              Connexion
+            </CardTitle>
+            <p className="text-gray-600">
               Connectez-vous à votre compte GESFARM
-            </CardDescription>
+            </p>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
+              {error && (
+                <Alert variant="destructive">
+                  <AlertDescription>{error}</AlertDescription>
+                </Alert>
+              )}
+              
               <div className="space-y-2">
-                <Label htmlFor="email" className="text-gray-300">Email</Label>
-                <div className="relative">
-                  <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
-                  <Input
-                    id="email"
-                    type="email"
-                    placeholder="admin@gesfarm.com"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    className="pl-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
-                    required
-                  />
-                </div>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange}
+                  placeholder="votre@email.com"
+                  required
+                  disabled={isLoading}
+                />
               </div>
-
+              
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-gray-300">Mot de passe</Label>
+                <Label htmlFor="password">Mot de passe</Label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
                   <Input
                     id="password"
+                    name="password"
                     type={showPassword ? "text" : "password"}
-                    placeholder="password"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="pl-10 pr-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400"
+                    value={formData.password}
+                    onChange={handleInputChange}
+                    placeholder="Votre mot de passe"
                     required
+                    disabled={isLoading}
                   />
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                    className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
                     onClick={() => setShowPassword(!showPassword)}
+                    disabled={isLoading}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-4 w-4" />
                     )}
                   </Button>
                 </div>
               </div>
-
-              <Button
-                type="submit"
-                className="w-full bg-green-600 hover:bg-green-700 text-white"
-                disabled={loginMutation.isPending}
+              
+              <Button 
+                type="submit" 
+                className="w-full" 
+                disabled={isLoading}
               >
-                {loginMutation.isPending ? (
-                  <div className="flex items-center">
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                     Connexion...
-                  </div>
+                  </>
                 ) : (
-                  <div className="flex items-center">
-                    <LogIn className="w-4 h-4 mr-2" />
+                  <>
+                    <LogIn className="h-4 w-4 mr-2" />
                     Se connecter
-                  </div>
+                  </>
                 )}
               </Button>
             </form>
-
-            {/* Informations de test */}
-            <div className="mt-6 p-4 bg-gray-700 rounded-lg">
-              <h3 className="text-sm font-medium text-gray-300 mb-2">Compte de test :</h3>
-              <p className="text-xs text-gray-400">Email: admin@gesfarm.com</p>
-              <p className="text-xs text-gray-400">Mot de passe: password</p>
+            
+            <div className="mt-6 text-center">
+              <p className="text-sm text-gray-500">
+                Pas encore de compte ?{" "}
+                <Button 
+                  variant="link" 
+                  className="p-0 h-auto text-green-600"
+                  onClick={() => router.push("/register")}
+                >
+                  Créer un compte
+                </Button>
+              </p>
             </div>
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <div className="text-center mt-8">
-          <p className="text-gray-500 text-sm">
-            © 2024 GESFARM - Plateforme de Gestion Agricole
-          </p>
-        </div>
       </div>
-    </div>
+    </LayoutMinimal>
   )
 }

@@ -53,7 +53,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
           {/* Header */}
           <div className="mb-8">
-            <div className="gradient-dashboard p-6 rounded-lg text-white">
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl text-white shadow-lg">
               <h1 className="text-3xl font-bold tracking-tight">Dashboard Ferme</h1>
               <p className="mt-2 opacity-90">
                 Vue d'ensemble de votre exploitation agropastorale.
@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
           {/* Metrics Grid */}
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          <div className="gradient-poultry p-4 rounded-lg text-white">
+          <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-xl text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm opacity-90">Volailles</p>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
             </div>
           </div>
             
-            <div className="gradient-cattle p-4 rounded-lg text-white">
+            <div className="bg-gradient-to-r from-green-500 to-green-600 p-6 rounded-xl text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90">Bovins</p>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <div className="gradient-crops p-4 rounded-lg text-white">
+            <div className="bg-gradient-to-r from-yellow-500 to-yellow-600 p-6 rounded-xl text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90">Cultures</p>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
               </div>
             </div>
             
-            <div className="gradient-stock p-4 rounded-lg text-white">
+            <div className="bg-gradient-to-r from-purple-500 to-purple-600 p-6 rounded-xl text-white shadow-lg">
               <div className="flex items-center justify-between">
                 <div>
                   <p className="text-sm opacity-90">Zones</p>

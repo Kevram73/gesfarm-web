@@ -16,17 +16,27 @@ import {
   Milk,
   Wheat,
   User,
-  DollarSign
+  DollarSign,
+  X,
+  ChevronDown,
+  ChevronRight
 } from "lucide-react"
+import { useState } from "react"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Finances", href: "/financial", icon: DollarSign },
-  { name: "Stocks", href: "/stocks", icon: Package },
-  { name: "Volailles", href: "/poultry", icon: Egg },
-  { name: "Bovins", href: "/cattle", icon: Milk },
-  { name: "Cultures", href: "/crops", icon: Wheat },
-  { name: "Zones", href: "/zones", icon: Map },
+  { 
+    name: "Gestion", 
+    icon: Package,
+    children: [
+      { name: "Finances", href: "/financial", icon: DollarSign },
+      { name: "Stocks", href: "/stocks", icon: Package },
+      { name: "Volailles", href: "/poultry", icon: Egg },
+      { name: "Bovins", href: "/cattle", icon: Milk },
+      { name: "Cultures", href: "/crops", icon: Wheat },
+      { name: "Zones", href: "/zones", icon: Map },
+    ]
+  },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Rapports", href: "/reports", icon: FileText },
   { name: "Notifications", href: "/notifications", icon: Bell },
@@ -36,45 +46,126 @@ const navigation = [
 
 interface SidebarProps {
   className?: string
+  onClose?: () => void
 }
 
-export function Sidebar({ className }: SidebarProps) {
+export function Sidebar({ className, onClose }: SidebarProps) {
   const pathname = usePathname()
+  const [expandedItems, setExpandedItems] = useState<string[]>([])
+
+  const toggleExpanded = (itemName: string) => {
+    setExpandedItems(prev => 
+      prev.includes(itemName) 
+        ? prev.filter(name => name !== itemName)
+        : [...prev, itemName]
+    )
+  }
+
+  const isItemActive = (item: any) => {
+    if (item.href) {
+      return pathname === item.href
+    }
+    if (item.children) {
+      return item.children.some((child: any) => pathname === child.href)
+    }
+    return false
+  }
 
   return (
     <div className={cn("pb-12", className)}>
-      <div className="space-y-4 py-4">
-        <div className="px-3 py-2">
-                      <h2 className="mb-2 px-4 text-lg font-semibold tracking-tight text-white">
-                        GESFARM
-                      </h2>
-          <div className="space-y-1">
-            {navigation.map((item) => {
-              const isActive = pathname === item.href
-              return (
+      {/* Header avec bouton de fermeture mobile */}
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+        <h2 className="text-xl font-bold text-gray-900">
+          GESFARM
+        </h2>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onClose}
+          className="md:hidden h-8 w-8"
+        >
+          <X className="h-4 w-4" />
+        </Button>
+      </div>
+
+      <div className="space-y-2 py-4">
+        {navigation.map((item) => {
+          const isActive = isItemActive(item)
+          const isExpanded = expandedItems.includes(item.name)
+
+          if (item.children) {
+            return (
+              <div key={item.name} className="px-3">
                 <Button
-                  key={item.name}
-                  variant={isActive ? "secondary" : "ghost"}
-                              className={cn(
-                                "w-full justify-start text-left",
-                                isActive
-                                  ? "bg-blue-600 text-white border-r-2 border-blue-400"
-                                  : "text-gray-300 hover:bg-gray-700 hover:text-white"
-                              )}
-                  asChild
+                  variant="ghost"
+                  className={cn(
+                    "w-full justify-between text-left font-medium",
+                    isActive
+                      ? "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
+                      : "text-gray-700 hover:bg-gray-100"
+                  )}
+                  onClick={() => toggleExpanded(item.name)}
                 >
-                  <Link href={item.href}>
-                                <item.icon className={cn(
-                                  "mr-3 h-4 w-4",
-                                  isActive ? "text-white" : "text-gray-400"
-                                )} />
+                  <div className="flex items-center">
+                    <item.icon className="mr-3 h-4 w-4" />
                     {item.name}
-                  </Link>
+                  </div>
+                  {isExpanded ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
                 </Button>
-              )
-            })}
-          </div>
-        </div>
+                
+                {isExpanded && (
+                  <div className="ml-6 mt-1 space-y-1">
+                    {item.children.map((child) => {
+                      const isChildActive = pathname === child.href
+                      return (
+                        <Button
+                          key={child.name}
+                          variant="ghost"
+                          className={cn(
+                            "w-full justify-start text-left text-sm",
+                            isChildActive
+                              ? "bg-blue-50 text-blue-700"
+                              : "text-gray-600 hover:bg-gray-50"
+                          )}
+                          asChild
+                        >
+                          <Link href={child.href} onClick={onClose}>
+                            <child.icon className="mr-3 h-4 w-4" />
+                            {child.name}
+                          </Link>
+                        </Button>
+                      )
+                    })}
+                  </div>
+                )}
+              </div>
+            )
+          }
+
+          return (
+            <div key={item.name} className="px-3">
+              <Button
+                variant="ghost"
+                className={cn(
+                  "w-full justify-start text-left font-medium",
+                  isActive
+                    ? "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
+                    : "text-gray-700 hover:bg-gray-100"
+                )}
+                asChild
+              >
+                <Link href={item.href} onClick={onClose}>
+                  <item.icon className="mr-3 h-4 w-4" />
+                  {item.name}
+                </Link>
+              </Button>
+            </div>
+          )
+        })}
       </div>
     </div>
   )
