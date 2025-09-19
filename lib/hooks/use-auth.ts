@@ -177,3 +177,9 @@ export function useAuth() {
     clearError: () => setError(null)
   }
 }
+
+// Export séparé pour la déconnexion
+export function useLogout() {
+  const { logout } = useAuth()
+  return logout
+}
