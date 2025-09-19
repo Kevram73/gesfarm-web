@@ -1,205 +1,308 @@
-# GESFARM - Plateforme de Gestion Agricole
+# 🚜 GESFARM - Système de Gestion de Ferme
 
-Une plateforme Next.js moderne pour la gestion d'exploitations agropastorales avec un design coloré et des fonctionnalités complètes.
+## 📋 **État Actuel de l'Application**
 
-## 🌾 Fonctionnalités
-
-- **Dashboard agricole** avec métriques de production en temps réel
-- **Gestion des stocks** (intrants, aliments, équipements, vétérinaires)
-- **Gestion avicole** (lots, ponte, incubation, santé)
-- **Gestion bovine** (troupeau, production laitière, santé)
-- **Gestion des cultures** (parcelles, activités, rendements)
-- **Cartographie des zones** (bâtiments, pâturages, cultures)
-- **Analytics avancés** avec graphiques et tendances
-- **Rapports détaillés** par module
-- **Système de notifications** avec alertes intelligentes
-- **Paramètres personnalisables** par utilisateur
-- **Thème agricole coloré** avec gradients et couleurs vives
-- **Données factices** pour démonstration
-
-## 🛠️ Technologies
-
-- **Next.js 15** avec App Router
-- **React 19** avec hooks modernes
-- **Tailwind CSS 4** avec thème agricole personnalisé
-- **Radix UI** pour les composants accessibles
-- **TanStack Query** pour la gestion d'état serveur
-- **React Hook Form** + **Zod** pour les formulaires
-- **Recharts** pour les graphiques agricoles
-- **Cartes interactives** avec marqueurs personnalisés
-- **Lucide React** pour les icônes agricoles
-- **React Hot Toast** pour les notifications
-- **TypeScript** pour la sécurité des types
-- **Données factices** pour démonstration complète
-
-## 📦 Installation
-
-1. Clonez le repository :
-```bash
-git clone <votre-repo>
-cd my-app
-```
-
-2. Installez les dépendances :
-```bash
-npm install
-```
-
-3. Lancez le serveur de développement :
-```bash
-npm run dev
-```
-
-4. Ouvrez [http://localhost:3000](http://localhost:3000) dans votre navigateur.
-
-## 🏗️ Structure du Projet
-
-```
-my-app/
-├── app/                    # Pages Next.js
-│   ├── page.tsx           # Dashboard agricole
-│   ├── stocks/            # Gestion des stocks
-│   ├── poultry/           # Gestion avicole
-│   ├── cattle/            # Gestion bovine
-│   ├── crops/             # Gestion des cultures
-│   ├── zones/             # Cartographie des zones
-│   ├── analytics/         # Analytics avancés
-│   ├── reports/           # Rapports détaillés
-│   ├── notifications/     # Système de notifications
-│   ├── settings/          # Paramètres
-│   └── login/             # Authentification
-├── lib/
-│   ├── components/        # Composants réutilisables
-│   │   ├── ui/           # Composants UI de base
-│   │   ├── layout/       # Layout et navigation
-│   │   ├── dashboard/    # Composants du dashboard
-│   │   └── maps/         # Composants cartographiques
-│   ├── hooks/            # Hooks personnalisés
-│   │   ├── use-fake-data.ts  # Hooks avec données factices
-│   │   └── use-*.ts      # Hooks par module
-│   ├── services/         # Services API (prêts pour Laravel)
-│   ├── data/             # Données factices
-│   │   └── fake-data.ts  # Données de démonstration
-│   ├── schemas/          # Schémas de validation
-│   └── utils.ts          # Utilitaires
-└── public/               # Assets statiques
-```
-
-## 🎨 Thème Agricole
-
-La plateforme utilise un thème agricole coloré avec :
-
-- **Couleurs principales** : Vert agricole (#059669)
-- **Gradients** : Orange (volailles), Bleu (bovins), Vert (cultures), Violet (stocks)
-- **Design moderne** avec cartes colorées et ombres douces
-- **Interface intuitive** adaptée aux utilisateurs agricoles
-
-## 📊 Modules Principaux
-
-### 🐔 Gestion Avicole
-- Suivi des lots de volailles
-- Enregistrement de la ponte
-- Gestion de l'incubation
-- Calcul des taux de mortalité
-- Statistiques de production
-
-### 🐄 Gestion Bovine
-- Suivi du troupeau
-- Production laitière
-- Santé des animaux
-- Gestion de la généalogie
-- Calcul des performances
-
-### 🌾 Gestion des Cultures
-- Suivi des parcelles
-- Activités culturales
-- Calcul des rendements
-- Planification des récoltes
-- Gestion des intrants
-
-### 📦 Gestion des Stocks
-- Inventaire des articles
-- Alertes de stock bas
-- Mouvements d'entrée/sortie
-- Gestion des fournisseurs
-- Dates d'expiration
-
-### 🗺️ Cartographie
-- Visualisation des zones
-- Marqueurs interactifs
-- Statistiques par zone
-- Gestion spatiale
-
-## 📈 Analytics & Rapports
-
-- **Métriques en temps réel** de production
-- **Graphiques interactifs** avec Recharts
-- **Rapports détaillés** par module
-- **Analyses de performance**
-- **Prédictions de rendement**
-
-## 🔔 Système de Notifications
-
-- **Alertes de stock** bas et expirés
-- **Rappels de vaccination**
-- **Notifications système**
-- **Priorités configurables**
-- **Historique complet**
-
-## 🎯 Données Factices
-
-La plateforme inclut des données factices complètes pour démonstration :
-
-- **2,847 volailles** réparties en 3 lots
-- **156 bovins** avec production laitière
-- **23 cultures** sur 5,200 m²
-- **8 zones** cartographiées
-- **45 articles de stock** avec alertes
-- **Notifications** en temps réel
-
-## 🔧 Scripts Disponibles
-
-```bash
-npm run dev          # Serveur de développement
-npm run build        # Build de production
-npm run start        # Serveur de production
-npm run lint         # Linting ESLint
-```
-
-## 🌐 Intégration API
-
-La plateforme est prête pour l'intégration avec l'API Laravel GESFARM :
-
-- **Services API** configurés dans `lib/services/`
-- **Hooks** prêts pour les vraies données
-- **Authentification** avec tokens Bearer
-- **Gestion d'erreurs** complète
-
-## 🎨 Personnalisation
-
-- **Thème coloré** facilement modifiable
-- **Composants réutilisables** avec Radix UI
-- **Responsive design** pour tous les écrans
-- **Accessibilité** intégrée
-
-## 🚀 Prochaines Étapes
-
-- [ ] Intégration avec l'API Laravel GESFARM
-- [ ] Authentification utilisateur complète
-- [ ] Tests unitaires et d'intégration
-- [ ] Déploiement en production
-- [ ] Mode hors-ligne (PWA)
-- [ ] Notifications push
-- [ ] Export de données (PDF, Excel)
-
-## 📄 Licence
-
-Ce projet est sous licence MIT. Voir le fichier LICENSE pour plus de détails.
-
-## 🤝 Contribution
-
-Les contributions sont les bienvenues ! N'hésitez pas à ouvrir une issue ou une pull request.
+### ✅ **Fonctionnalités Implémentées**
+- ✅ Interface utilisateur moderne avec Next.js 15
+- ✅ Authentification et autorisation
+- ✅ Dashboard principal avec métriques de base
+- ✅ Gestion des bovins (CRUD complet)
+- ✅ Gestion des volailles (CRUD complet)
+- ✅ Gestion des cultures (CRUD complet)
+- ✅ Gestion des zones (CRUD complet)
+- ✅ Gestion des stocks (CRUD complet)
+- ✅ Gestion des utilisateurs
+- ✅ Layout responsive avec sidebar
+- ✅ Système de navigation
+- ✅ **NOUVEAU** : Tableau de bord financier (partiellement implémenté)
 
 ---
 
-**GESFARM** - Solution complète de gestion d'exploitation agropastorale 🌾
+## 🚧 **FONCTIONNALITÉS MANQUANTES - ROADMAP COMPLÈTE**
+
+### 🔥 **PRIORITÉ 1 - CORRECTIONS URGENTES**
+
+#### **A. Erreurs de Compilation (À CORRIGER IMMÉDIATEMENT)**
+```bash
+# Erreurs actuelles dans le terminal :
+- Duplication de fonctions dans use-api-data.ts
+- Cache Next.js corrompu
+- Serveur de développement instable
+```
+
+**Actions requises :**
+1. **Nettoyer le cache Next.js**
+   ```bash
+   cd C:\Users\LENOVO\Documents\codes\my-app
+   Remove-Item -Recurse -Force .next
+   npm run dev
+   ```
+
+2. **Corriger les doublons dans `lib/hooks/use-api-data.ts`**
+   - Supprimer les fonctions dupliquées
+   - Vérifier les imports
+
+---
+
+### 🗄️ **PRIORITÉ 2 - BASE DE DONNÉES (Backend Laravel)**
+
+#### **A. Migrations Manquantes**
+```bash
+cd C:\Users\LENOVO\Documents\codes\gesfarm
+php artisan make:migration create_financial_transactions_table
+php artisan make:migration create_budgets_table  
+php artisan make:migration create_financial_alerts_table
+php artisan make:migration create_veterinary_records_table
+php artisan make:migration create_production_records_table
+php artisan make:migration create_weather_data_table
+php artisan make:migration create_market_prices_table
+```
+
+#### **B. Tables à Créer**
+- **`financial_transactions`** : Transactions financières
+- **`budgets`** : Budgets et planification
+- **`financial_alerts`** : Alertes financières
+- **`veterinary_records`** : Carnets de santé vétérinaire
+- **`production_records`** : Enregistrements de production
+- **`weather_data`** : Données météorologiques
+- **`market_prices`** : Prix des marchés
+
+---
+
+### 🔌 **PRIORITÉ 3 - API BACKEND (Laravel)**
+
+#### **A. Contrôleurs à Finaliser**
+- ✅ `FinancialController.php` - **CRÉÉ**
+- 🔄 `VeterinaryController.php` - **À CRÉER**
+- 🔄 `ProductionController.php` - **À CRÉER**
+- 🔄 `WeatherController.php` - **À CRÉER**
+- 🔄 `MarketController.php` - **À CRÉER**
+- 🔄 `AnalyticsController.php` - **À CRÉER**
+- 🔄 `ReportController.php` - **À CRÉER**
+
+#### **B. Méthodes API Manquantes**
+```php
+// FinancialController
+- updateBudget()
+- deleteBudget()
+- exportData()
+- importData()
+
+// VeterinaryController (NOUVEAU)
+- getTreatments()
+- createTreatment()
+- getVaccinationSchedule()
+- getHealthHistory()
+
+// ProductionController (NOUVEAU)
+- recordProduction()
+- getProductionStats()
+- getYieldAnalysis()
+
+// WeatherController (NOUVEAU)
+- getWeatherData()
+- getWeatherAlerts()
+- getSeasonalData()
+
+// MarketController (NOUVEAU)
+- getMarketPrices()
+- getPriceHistory()
+- getMarketTrends()
+```
+
+---
+
+### 🎨 **PRIORITÉ 4 - FRONTEND (Next.js)**
+
+#### **A. Pages Manquantes**
+- 🔄 `/financial/transactions` - Liste des transactions
+- 🔄 `/financial/budgets` - Gestion des budgets
+- 🔄 `/financial/reports` - Rapports financiers
+- 🔄 `/veterinary` - Gestion vétérinaire
+- 🔄 `/veterinary/schedule` - Planning vétérinaire
+- 🔄 `/production` - Enregistrement de production
+- 🔄 `/production/analytics` - Analytics de production
+- 🔄 `/weather` - Données météorologiques
+- 🔄 `/market` - Prix des marchés
+- 🔄 `/analytics` - Tableaux de bord avancés
+- 🔄 `/reports` - Génération de rapports
+- 🔄 `/settings` - Paramètres de l'application
+
+#### **B. Composants Manquants**
+- 🔄 `FinancialChart` - Graphiques financiers
+- 🔄 `ProductionChart` - Graphiques de production
+- 🔄 `VeterinaryCard` - Cartes vétérinaires
+- 🔄 `WeatherWidget` - Widget météo
+- 🔄 `MarketPriceWidget` - Widget prix
+- 🔄 `AlertSystem` - Système d'alertes
+- 🔄 `ReportGenerator` - Générateur de rapports
+- 🔄 `DataExport` - Export de données
+
+---
+
+### 📊 **PRIORITÉ 5 - FONCTIONNALITÉS MÉTIER**
+
+#### **A. Gestion Financière Avancée**
+- 🔄 **Comptabilité générale** : Revenus, dépenses, profits/pertes
+- 🔄 **Budget et planification** : Budgets saisonniers, prévisions
+- 🔄 **Facturation** : Factures clients, fournisseurs
+- 🔄 **Rapports financiers** : P&L, cash-flow, ROI par activité
+- 🔄 **Gestion des taxes** : TVA, impôts agricoles
+- 🔄 **Import/Export** : CSV, Excel, PDF
+
+#### **B. Gestion Vétérinaire Complète**
+- 🔄 **Carnet de santé** : Vaccinations, traitements, maladies
+- 🔄 **Reproduction** : Insémination, gestation, vêlages
+- 🔄 **Alimentation** : Rations, compléments, coûts
+- 🔄 **Poids et croissance** : Courbes de croissance, objectifs
+- 🔄 **Alertes sanitaires** : Rappels, quarantaines
+- 🔄 **Planning vétérinaire** : Calendrier des soins
+
+#### **C. Gestion des Cultures Avancée**
+- 🔄 **Planification des cultures** : Calendrier de plantation/récolte
+- 🔄 **Suivi des parcelles** : Rotation, rendements, qualité du sol
+- 🔄 **Gestion des semences** : Stock, variétés, dates d'expiration
+- 🔄 **Irrigation** : Planification, coûts, efficacité
+- 🔄 **Traitements phytosanitaires** : Produits, dates, dosages
+- 🔄 **Analyse de rendement** : Comparaisons, optimisations
+
+#### **D. Gestion des Stocks Complète**
+- 🔄 **Inventaire en temps réel** : Mouvements, niveaux de stock
+- 🔄 **Gestion des fournisseurs** : Commandes, prix, délais
+- 🔄 **Traçabilité** : Lots, dates d'expiration, origine
+- 🔄 **Alertes automatiques** : Ruptures, péremption
+- 🔄 **Coûts de stockage** : Frais, amortissement
+- 🔄 **Codes-barres** : Scan, inventaire rapide
+
+#### **E. Analytics et Reporting**
+- 🔄 **Tableaux de bord** : KPIs, tendances, alertes
+- 🔄 **Rapports automatisés** : Production, finances, performance
+- 🔄 **Comparaisons** : Années précédentes, objectifs
+- 🔄 **Prédictions** : IA pour optimiser la production
+- 🔄 **Export de données** : PDF, Excel, CSV
+
+---
+
+### 👥 **PRIORITÉ 6 - GESTION DU PERSONNEL**
+
+#### **A. Fonctionnalités RH**
+- 🔄 **Employés** : Fiches, salaires, horaires
+- 🔄 **Tâches et planning** : Assignation, suivi, évaluation
+- 🔄 **Formation** : Certifications, compétences
+- 🔄 **Paie** : Salaires, charges, déclarations
+- 🔄 **Planning** : Shifts, congés, remplacements
+
+---
+
+### 🌱 **PRIORITÉ 7 - GESTION ENVIRONNEMENTALE**
+
+#### **A. Fonctionnalités Écologiques**
+- 🔄 **Impact carbone** : Empreinte écologique
+- 🔄 **Gestion des déchets** : Recyclage, compostage
+- 🔄 **Énergies renouvelables** : Panneaux solaires, éoliennes
+- 🔄 **Certifications** : Bio, équitable, qualité
+- 🔄 **Conformité** : Réglementations environnementales
+
+---
+
+### 📱 **PRIORITÉ 8 - FONCTIONNALITÉS MOBILES**
+
+#### **A. Application Mobile**
+- 🔄 **App mobile** : Saisie terrain, photos, géolocalisation
+- 🔄 **Mode hors-ligne** : Synchronisation différée
+- 🔄 **Notifications push** : Alertes, rappels
+- 🔄 **Scan de codes-barres** : Inventaire rapide
+- 🔄 **GPS** : Suivi des animaux, parcelles
+
+---
+
+### 🔗 **PRIORITÉ 9 - INTÉGRATIONS EXTERNES**
+
+#### **A. APIs Externes**
+- 🔄 **Météo** : Prévisions, alertes climatiques
+- 🔄 **Marchés** : Prix des matières premières
+- 🔄 **Bancaire** : Import automatique des transactions
+- 🔄 **ERP** : Intégration avec systèmes existants
+- 🔄 **IoT** : Capteurs, équipements connectés
+
+---
+
+### 🛡️ **PRIORITÉ 10 - SÉCURITÉ ET CONFORMITÉ**
+
+#### **A. Sécurité**
+- 🔄 **Audit trail** : Traçabilité des actions
+- 🔄 **Sauvegarde** : Données critiques
+- 🔄 **RGPD** : Protection des données
+- 🔄 **Certifications** : HACCP, ISO, etc.
+- 🔄 **Chiffrement** : Données sensibles
+
+---
+
+## 🎯 **PLAN D'IMPLÉMENTATION RECOMMANDÉ**
+
+### **Phase 1 (1-2 semaines) - STABILISATION**
+1. ✅ Corriger les erreurs de compilation
+2. ✅ Finaliser les migrations de base de données
+3. ✅ Compléter les API de base
+4. ✅ Tester les fonctionnalités existantes
+
+### **Phase 2 (2-3 semaines) - FONCTIONNALITÉS CORE**
+1. 🔄 Gestion financière complète
+2. 🔄 Système d'alertes
+3. 🔄 Rapports de base
+4. 🔄 Gestion vétérinaire
+
+### **Phase 3 (3-4 semaines) - FONCTIONNALITÉS AVANCÉES**
+1. 🔄 Analytics et tableaux de bord
+2. 🔄 Gestion des cultures avancée
+3. 🔄 Intégrations externes
+4. 🔄 Application mobile
+
+### **Phase 4 (2-3 semaines) - OPTIMISATION**
+1. 🔄 Performance et optimisation
+2. 🔄 Tests et qualité
+3. 🔄 Documentation
+4. 🔄 Déploiement
+
+---
+
+## 🚀 **COMMANDES DE DÉMARRAGE**
+
+### **Frontend (Next.js)**
+```bash
+cd C:\Users\LENOVO\Documents\codes\my-app
+npm install
+npm run dev
+```
+
+### **Backend (Laravel)**
+```bash
+cd C:\Users\LENOVO\Documents\codes\gesfarm
+composer install
+php artisan migrate
+php artisan serve
+```
+
+---
+
+## 📞 **SUPPORT ET CONTRIBUTION**
+
+- **Issues** : Signaler les bugs et demandes de fonctionnalités
+- **Documentation** : Guide d'utilisation et API
+- **Tests** : Suite de tests automatisés
+- **Déploiement** : Guide de déploiement en production
+
+---
+
+## 📈 **MÉTRIQUES DE SUCCÈS**
+
+- ✅ **0 erreur de compilation**
+- 🔄 **100% des API fonctionnelles**
+- 🔄 **Temps de réponse < 2s**
+- 🔄 **Couverture de tests > 80%**
+- 🔄 **Interface responsive sur tous les appareils**
+
+---
+
+*Dernière mise à jour : 18 Septembre 2025*
+*Version : 1.0.0-beta*
