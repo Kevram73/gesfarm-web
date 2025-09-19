@@ -24,29 +24,6 @@ export default function DashboardPage() {
   const { data: financialData } = useFinancialSummary({ period: 'month' })
   const { data: financialAlerts } = useFinancialAlerts()
 
-  // Chargement principal basé sur les KPIs
-  if (kpisLoading) {
-    return (
-      <AuthGuard>
-        <LayoutSimple>
-          <div className="space-y-6">
-            <div className="mb-8">
-              <h1 className="text-3xl font-bold tracking-tight text-white">Dashboard Ferme</h1>
-              <p className="text-gray-300 mt-2">
-                Chargement des métriques de votre exploitation...
-              </p>
-            </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
-                <div key={i} className="h-32 bg-gray-700 rounded-lg animate-pulse"></div>
-              ))}
-            </div>
-          </div>
-        </LayoutSimple>
-      </AuthGuard>
-    )
-  }
-
   return (
     <AuthGuard>
       <LayoutSimple>
@@ -61,8 +38,26 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* Metrics Grid */}
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Loading State */}
+          {kpisLoading && (
+            <div className="space-y-6">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                {[...Array(4)].map((_, i) => (
+                  <div key={i} className="h-32 bg-gray-700 rounded-lg animate-pulse"></div>
+                ))}
+              </div>
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+                <p className="text-gray-300">Chargement des métriques...</p>
+              </div>
+            </div>
+          )}
+
+          {/* Main Content - Only show when not loading */}
+          {!kpisLoading && (
+            <>
+              {/* Metrics Grid */}
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           <div className="bg-gradient-to-r from-orange-500 to-orange-600 p-6 rounded-xl text-white shadow-lg">
             <div className="flex items-center justify-between">
               <div>
@@ -179,7 +174,7 @@ export default function DashboardPage() {
                   Alertes actives : <span className="font-medium text-red-600">{alertsData?.length || 0}</span>
                 </p>
                 <p className="text-gray-600">
-                  Articles en stock : <span className="font-medium">{dashboardData.total_stock_items || 0}</span>
+                  Articles en stock : <span className="font-medium">0</span>
                 </p>
               </div>
               <div className="p-6 bg-gray-50 rounded-xl">
@@ -204,6 +199,8 @@ export default function DashboardPage() {
               </div>
             </div>
           </div>
+            </>
+          )}
         </div>
       </LayoutSimple>
     </AuthGuard>

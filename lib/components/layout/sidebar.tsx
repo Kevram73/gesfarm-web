@@ -42,7 +42,6 @@ const navigation = [
   { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Profil", href: "/profile", icon: User },
   { name: "Paramètres", href: "/settings", icon: Settings },
-  { name: "Test Auth", href: "/test-auth", icon: User },
 ]
 
 interface SidebarProps {

@@ -26,6 +26,7 @@ export default function HomePage() {
   // Rediriger si déjà authentifié
   useEffect(() => {
     if (isAuthenticated) {
+      console.log("HomePage: Utilisateur authentifié, redirection vers dashboard")
       router.push("/dashboard")
     }
   }, [isAuthenticated, router])
@@ -55,12 +56,12 @@ export default function HomePage() {
   if (isAuthenticated) {
     return (
       <LayoutMinimal>
-      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Redirection vers le dashboard...</p>
           </div>
-      </div>
+        </div>
       </LayoutMinimal>
     )
   }

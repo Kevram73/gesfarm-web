@@ -117,6 +117,7 @@ export function useAuthGlobal() {
     return false
   }
 
+  // Ajouter un délai pour stabiliser l'état d'authentification
   return authData.isAuthenticated
 }
 

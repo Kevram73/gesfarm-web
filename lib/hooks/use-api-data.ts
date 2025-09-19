@@ -411,10 +411,30 @@ export const apiKeys = {
 export const getDashboardKPIs = async (): Promise<DashboardKPIs> => {
   try {
     const response = await api.get("/dashboard")
-    return response.data.data
+    const data = response.data.data
+    
+    // Transformer la structure du backend vers la structure attendue par le frontend
+    const kpis = data.kpis || {}
+    const poultryStats = kpis.poultry_stats || {}
+    const cattleStats = kpis.cattle_stats || {}
+    const cropStats = kpis.crop_stats || {}
+    const taskStats = kpis.tasks || {}
+    
+    return {
+      total_poultry: poultryStats.total_birds || 0,
+      total_cattle: cattleStats.total_cattle || 0,
+      total_crops: cropStats.total_crops || 0,
+      total_zones: 0, // Pas encore implémenté côté backend
+      production_summary: {
+        eggs_today: poultryStats.daily_egg_production || 0,
+        milk_today: cattleStats.milk_production_today || 0
+      },
+      total_revenue: 0, // À implémenter
+      total_expenses: 0, // À implémenter
+      net_profit: 0 // À implémenter
+    }
   } catch (error) {
-    // Fallback avec des données simulées si l'endpoint n'existe pas
-    console.warn("Dashboard endpoint not available, using fallback data")
+    console.warn("Dashboard endpoint not available, using fallback data:", error)
     return {
       total_poultry: 0,
       total_cattle: 0,
@@ -431,10 +451,65 @@ export const getDashboardKPIs = async (): Promise<DashboardKPIs> => {
 export const getStockAlerts = async (): Promise<StockAlert[]> => {
   try {
     const response = await api.get("/dashboard/stock-alerts")
-    return response.data.data
+    const data = response.data.data
+    
+    // Transformer la structure du backend vers la structure attendue par le frontend
+    const alerts: StockAlert[] = []
+    
+    // Ajouter les alertes de stock faible
+    if (data.low_stock) {
+      data.low_stock.forEach((item: any) => {
+        alerts.push({
+          id: item.id,
+          name: item.name,
+          current_stock: item.current_quantity || item.current_stock || 0,
+          min_stock: item.minimum_quantity || item.min_stock || 0,
+          unit: item.unit || 'unité',
+          category: item.category?.name || 'Non catégorisé',
+          alert_type: 'low_stock',
+          severity: 'high',
+          message: `Stock faible: ${item.current_quantity || 0} ${item.unit || 'unités'} restantes`
+        })
+      })
+    }
+    
+    // Ajouter les alertes d'expiration
+    if (data.expired_items) {
+      data.expired_items.forEach((item: any) => {
+        alerts.push({
+          id: item.id + 10000, // ID unique pour éviter les conflits
+          name: item.name,
+          current_stock: item.current_quantity || item.current_stock || 0,
+          min_stock: item.minimum_quantity || item.min_stock || 0,
+          unit: item.unit || 'unité',
+          category: item.category?.name || 'Non catégorisé',
+          alert_type: 'expired',
+          severity: 'critical',
+          message: `Article expiré: ${item.name} (expiré le ${item.expiry_date})`
+        })
+      })
+    }
+    
+    // Ajouter les alertes d'expiration proche
+    if (data.expiring_soon) {
+      data.expiring_soon.forEach((item: any) => {
+        alerts.push({
+          id: item.id + 20000, // ID unique pour éviter les conflits
+          name: item.name,
+          current_stock: item.current_quantity || item.current_stock || 0,
+          min_stock: item.minimum_quantity || item.min_stock || 0,
+          unit: item.unit || 'unité',
+          category: item.category?.name || 'Non catégorisé',
+          alert_type: 'expiring_soon',
+          severity: 'medium',
+          message: `Expiration proche: ${item.name} (expire le ${item.expiry_date})`
+        })
+      })
+    }
+    
+    return alerts
   } catch (error) {
-    // Fallback avec des données simulées si l'endpoint n'existe pas
-    console.warn("Stock alerts endpoint not available, using fallback data")
+    console.warn("Stock alerts endpoint not available, using fallback data:", error)
     return []
   }
 }
@@ -819,32 +894,29 @@ export const getFarmOverviewAnalytics = async (): Promise<FarmOverviewAnalytics>
 export function useDashboardKPIs() {
   const isAuthenticated = useAuthGlobal()
   
-  // Désactiver complètement les requêtes pour éviter les erreurs
-  return {
-    data: {
-      total_poultry: 0,
-      total_cattle: 0,
-      total_crops: 0,
-      total_zones: 0,
-      production_summary: {
-        eggs_today: 0,
-        milk_today: 0
-      }
-    },
-    isLoading: false,
-    error: null
-  }
+  return useQuery({
+    queryKey: apiKeys.dashboard(),
+    queryFn: getDashboardKPIs,
+    refetchInterval: 60000, // Rafraîchir toutes les minutes
+    enabled: isAuthenticated,
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 30000, // Considérer les données comme fraîches pendant 30 secondes
+  })
 }
 
 export function useStockAlerts() {
   const isAuthenticated = useAuthGlobal()
   
-  // Désactiver complètement les requêtes pour éviter les erreurs
-  return {
-    data: [],
-    isLoading: false,
-    error: null
-  }
+  return useQuery({
+    queryKey: apiKeys.stockAlerts(),
+    queryFn: getStockAlerts,
+    refetchInterval: 60000, // Rafraîchir toutes les minutes
+    enabled: isAuthenticated,
+    retry: 3,
+    retryDelay: 1000,
+    staleTime: 30000, // Considérer les données comme fraîches pendant 30 secondes
+  })
 }
 
 export function usePoultryStats() {
