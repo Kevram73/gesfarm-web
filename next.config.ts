@@ -11,6 +11,13 @@ const nextConfig = {
     // your project has type errors.
     ignoreBuildErrors: true,
   },
+  // Désactiver l'export statique pour éviter les erreurs de fichiers manquants
+  output: 'standalone',
+  // Ignorer les erreurs d'export statique
+  experimental: {
+    skipTrailingSlashRedirect: true,
+    skipMiddlewareUrlNormalize: true,
+  },
 }
 
 module.exports = nextConfig
