@@ -53,8 +53,8 @@ export default function DashboardPage() {
             </div>
           )}
 
-          {/* Main Content - Only show when not loading */}
-          {!kpisLoading && (
+          {/* Main Content - Only show when not loading and data is available */}
+          {!kpisLoading && dashboardData && (
             <>
               {/* Metrics Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -63,7 +63,7 @@ export default function DashboardPage() {
               <div>
                 <p className="text-sm opacity-90">Volailles</p>
                 <p className="text-2xl font-bold">
-                  {dashboardData.total_poultry?.toLocaleString() || "0"}
+                  {dashboardData?.total_poultry?.toLocaleString() || "0"}
                 </p>
                 <p className="text-xs opacity-75">Total des volailles en élevage</p>
               </div>
@@ -76,7 +76,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Bovins</p>
                   <p className="text-2xl font-bold">
-                    {dashboardData.total_cattle?.toLocaleString() || "0"}
+                    {dashboardData?.total_cattle?.toLocaleString() || "0"}
                   </p>
                   <p className="text-xs opacity-75">Troupeau bovin total</p>
                 </div>
@@ -89,7 +89,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Cultures</p>
                   <p className="text-2xl font-bold">
-                    {dashboardData.total_crops?.toLocaleString() || "0"}
+                    {dashboardData?.total_crops?.toLocaleString() || "0"}
                   </p>
                   <p className="text-xs opacity-75">Parcelles en culture</p>
                 </div>
@@ -102,7 +102,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Zones</p>
                   <p className="text-2xl font-bold">
-                    {dashboardData.total_zones?.toLocaleString() || "0"}
+                    {dashboardData?.total_zones?.toLocaleString() || "0"}
                   </p>
                   <p className="text-xs opacity-75">Zones de l'exploitation</p>
                 </div>
@@ -118,7 +118,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Œufs collectés</p>
                   <p className="text-2xl font-bold">
-                    {dashboardData.production_summary?.eggs_today?.toLocaleString() || "0"}
+                    {dashboardData?.production_summary?.eggs_today?.toLocaleString() || "0"}
                   </p>
                   <p className="text-xs opacity-75">Production d'œufs du jour</p>
                 </div>
@@ -131,7 +131,7 @@ export default function DashboardPage() {
                 <div>
                   <p className="text-sm opacity-90">Lait produit</p>
                   <p className="text-2xl font-bold">
-                    {dashboardData.production_summary?.milk_today || 0} L
+                    {dashboardData?.production_summary?.milk_today || 0} L
                   </p>
                   <p className="text-xs opacity-75">Production laitière du jour</p>
                 </div>
@@ -162,10 +162,10 @@ export default function DashboardPage() {
               <div className="p-6 bg-gray-50 rounded-xl">
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Production du jour</h3>
                 <p className="text-gray-600">
-                  Œufs collectés : <span className="font-medium">{dashboardData.production_summary?.eggs_today?.toLocaleString() || "0"}</span>
+                  Œufs collectés : <span className="font-medium">{dashboardData?.production_summary?.eggs_today?.toLocaleString() || "0"}</span>
                 </p>
                 <p className="text-gray-600">
-                  Lait produit : <span className="font-medium">{dashboardData.production_summary?.milk_today || 0} L</span>
+                  Lait produit : <span className="font-medium">{dashboardData?.production_summary?.milk_today || 0} L</span>
                 </p>
               </div>
               <div className="p-6 bg-gray-50 rounded-xl">
@@ -200,6 +200,24 @@ export default function DashboardPage() {
             </div>
           </div>
             </>
+          )}
+
+          {/* No Data State */}
+          {!kpisLoading && !dashboardData && (
+            <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-6">
+              <div className="flex items-center space-x-3">
+                <AlertTriangle className="h-6 w-6 text-yellow-400" />
+                <div>
+                  <h3 className="text-yellow-400 font-medium">Aucune donnée disponible</h3>
+                  <p className="text-yellow-300 text-sm mt-1">
+                    Aucune donnée n'a été trouvée pour le dashboard. Cela peut être normal si l'exploitation vient d'être créée.
+                  </p>
+                  <p className="text-yellow-200 text-xs mt-2">
+                    Commencez par ajouter des animaux, des cultures ou des articles de stock pour voir les données apparaître.
+                  </p>
+                </div>
+              </div>
+            </div>
           )}
         </div>
       </LayoutSimple>
