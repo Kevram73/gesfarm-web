@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { AuthGuard } from "@/lib/components/auth/auth-guard"
 import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { 
   Users, 
@@ -18,9 +17,9 @@ import {
 
 export default function DashboardClient() {
   const [mounted, setMounted] = useState(false)
-  const [dashboardData, setDashboardData] = useState(null)
-  const [alertsData, setAlertsData] = useState([])
-  const [financialData, setFinancialData] = useState(null)
+  const [dashboardData, setDashboardData] = useState<any>(null)
+  const [alertsData, setAlertsData] = useState<any[]>([])
+  const [financialData, setFinancialData] = useState<any>(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
@@ -43,7 +42,6 @@ export default function DashboardClient() {
           }
         }
         
-        const defaultAlertsData = []
         const defaultFinancialData = {
           monthly_income: 0,
           monthly_expenses: 0,
@@ -51,7 +49,7 @@ export default function DashboardClient() {
         }
         
         setDashboardData(defaultDashboardData)
-        setAlertsData(defaultAlertsData)
+        setAlertsData([])
         setFinancialData(defaultFinancialData)
         setIsLoading(false)
       } catch (error) {
@@ -76,9 +74,8 @@ export default function DashboardClient() {
   }
 
   return (
-    <AuthGuard>
-      <LayoutSimple>
-        <div className="space-y-6">
+    <LayoutSimple>
+      <div className="space-y-6">
           {/* Header */}
           <div className="mb-8">
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 p-6 rounded-xl text-white shadow-lg">
@@ -89,59 +86,8 @@ export default function DashboardClient() {
             </div>
           </div>
 
-          {/* Loading State */}
-          {kpisLoading && (
-            <div className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-                {[...Array(4)].map((_, i) => (
-                  <div key={i} className="h-32 bg-gray-700 rounded-lg animate-pulse"></div>
-                ))}
-              </div>
-              <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-                <p className="text-gray-300">Chargement des métriques...</p>
-              </div>
-            </div>
-          )}
-
-          {/* Error State */}
-          {!kpisLoading && (kpisError || stockAlertsError) && (
-            <div className="bg-red-900/20 border border-red-500/50 rounded-lg p-6">
-              <div className="flex items-center space-x-3">
-                <AlertTriangle className="h-6 w-6 text-red-400" />
-                <div>
-                  <h3 className="text-red-400 font-medium">Erreur de chargement des données</h3>
-                  <p className="text-red-300 text-sm mt-1">
-                    {kpisError?.message || stockAlertsError?.message || "Impossible de charger les données du dashboard"}
-                  </p>
-                  <p className="text-red-200 text-xs mt-2">
-                    Vérifiez votre connexion et réessayez. Si le problème persiste, contactez l'administrateur.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* No Data State */}
-          {!kpisLoading && !kpisError && !stockAlertsError && !dashboardData && (
-            <div className="bg-yellow-900/20 border border-yellow-500/50 rounded-lg p-6">
-              <div className="flex items-center space-x-3">
-                <AlertTriangle className="h-6 w-6 text-yellow-400" />
-                <div>
-                  <h3 className="text-yellow-400 font-medium">Aucune donnée disponible</h3>
-                  <p className="text-yellow-300 text-sm mt-1">
-                    Aucune donnée n'a été trouvée pour le dashboard. Cela peut être normal si l'exploitation vient d'être créée.
-                  </p>
-                  <p className="text-yellow-200 text-xs mt-2">
-                    Commencez par ajouter des animaux, des cultures ou des articles de stock pour voir les données apparaître.
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Main Content - Only show when not loading and data is available */}
-          {!kpisLoading && !kpisError && !stockAlertsError && dashboardData && (
+          {/* Main Content - Always show since we have default data */}
+          {dashboardData && (
             <>
               {/* Metrics Grid */}
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -290,6 +236,5 @@ export default function DashboardClient() {
           )}
         </div>
       </LayoutSimple>
-    </AuthGuard>
   )
 }
