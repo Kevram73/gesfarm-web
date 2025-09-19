@@ -2,7 +2,6 @@ import dynamic from "next/dynamic"
 
 // Import dynamique pour éviter les problèmes SSR et les boucles
 const DashboardClient = dynamic(() => import("./dashboard-client"), {
-  ssr: false,
   loading: () => (
     <div className="min-h-screen flex items-center justify-center bg-gray-900">
       <div className="text-center">

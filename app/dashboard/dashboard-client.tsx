@@ -1,5 +1,6 @@
 "use client"
 
+import { useState, useEffect } from "react"
 import { AuthGuard } from "@/lib/components/auth/auth-guard"
 import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { MetricCard } from "@/lib/components/dashboard"
@@ -18,11 +19,29 @@ import {
 } from "lucide-react"
 
 export default function DashboardClient() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
   // Les hooks retournent maintenant directement les données sans erreur
   const { data: dashboardData, isLoading: kpisLoading, error: kpisError } = useDashboardKPIs()
   const { data: alertsData, isLoading: stockAlertsLoading, error: stockAlertsError } = useStockAlerts()
   const { data: financialData } = useFinancialSummary({ period: 'month' })
   const { data: financialAlerts } = useFinancialAlerts()
+
+  // Ne pas rendre le contenu jusqu'à ce que le composant soit monté côté client
+  if (!mounted) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-900">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-300">Chargement du dashboard...</p>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <AuthGuard>
