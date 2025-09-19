@@ -113,7 +113,7 @@ export default function AddZonePage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center space-x-4">
@@ -293,6 +293,6 @@ export default function AddZonePage() {
           </CardContent>
         </Card>
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

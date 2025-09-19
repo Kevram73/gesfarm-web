@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
-import { Layout } from "@/lib/components/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Button } from "@/lib/components/ui/button"
 import { Badge } from "@/lib/components/ui/badge"
@@ -16,7 +16,7 @@ export default function TasksPage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <LayoutSimple>
         <div className="space-y-6">
           <div className="h-8 bg-gray-700 rounded animate-pulse"></div>
           <div className="grid gap-4 md:grid-cols-4">
@@ -30,7 +30,7 @@ export default function TasksPage() {
             ))}
           </div>
         </div>
-      </Layout>
+      </LayoutSimple>
     )
   }
 
@@ -104,7 +104,7 @@ export default function TasksPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -319,6 +319,6 @@ export default function TasksPage() {
           </Card>
         )}
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

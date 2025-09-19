@@ -2,7 +2,7 @@ import axios from "axios"
 
 // Configuration de base pour axios - API GESFARM Laravel
 const api = axios.create({
-  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://62.171.181.213:8000/api",
+  baseURL: process.env.NEXT_PUBLIC_API_URL || "http://62.171.181.213/api",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",

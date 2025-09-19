@@ -23,7 +23,7 @@ import {
   Lock
 } from "lucide-react"
 import toast from "react-hot-toast"
-import { Layout } from "@/lib/components/layout/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { useCurrentUser, useUpdateUserProfile, useChangePassword } from "@/lib/hooks/use-api-data"
 import { useLogout } from "@/lib/hooks/use-auth"
 
@@ -146,18 +146,18 @@ export default function ProfilePage() {
 
   if (isLoading) {
     return (
-      <Layout>
+      <LayoutSimple>
         <div className="space-y-6">
           <div className="h-8 bg-gray-700 rounded animate-pulse"></div>
           <div className="h-64 bg-gray-700 rounded animate-pulse"></div>
         </div>
-      </Layout>
+      </LayoutSimple>
     )
   }
 
   if (error) {
     return (
-      <Layout>
+      <LayoutSimple>
         <div className="space-y-6">
           <div className="text-center py-12">
             <h2 className="text-2xl font-bold text-red-500 mb-4">Erreur de chargement</h2>
@@ -167,7 +167,7 @@ export default function ProfilePage() {
             </Button>
           </div>
         </div>
-      </Layout>
+      </LayoutSimple>
     )
   }
 
@@ -176,7 +176,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -467,6 +467,6 @@ export default function ProfilePage() {
           </div>
         </div>
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

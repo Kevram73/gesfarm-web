@@ -1,6 +1,6 @@
 "use client"
 
-import { Layout } from "@/lib/components/layout"
+import { LayoutSimple } from "@/lib/components/layout/layout-simple"
 import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/card"
 import { Chart } from "@/lib/components/dashboard"
 import { 
@@ -70,7 +70,7 @@ export default function AnalyticsPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="mb-8">
@@ -290,6 +290,6 @@ export default function AnalyticsPage() {
           </Card>
         </div>
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

@@ -60,7 +60,7 @@ export default function PoultryPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -249,6 +249,6 @@ export default function PoultryPage() {
           </div>
         )}
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }

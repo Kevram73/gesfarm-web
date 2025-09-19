@@ -75,7 +75,7 @@ export default function UsersPage() {
   }
 
   return (
-    <Layout>
+    <LayoutSimple>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
@@ -283,6 +283,6 @@ export default function UsersPage() {
           </Card>
         )}
       </div>
-    </Layout>
+    </LayoutSimple>
   )
 }
