@@ -10,10 +10,11 @@ export interface User {
   name: string
   email: string
   roles: string[]
-  permissions?: string[]
+  created_at?: string
+  updated_at?: string
 }
 
-export interface AuthResponse {
+export interface LoginResponse {
   status: string
   message: string
   data: {
@@ -22,42 +23,102 @@ export interface AuthResponse {
   }
 }
 
-// Connexion
-export const login = async (credentials: LoginCredentials): Promise<AuthResponse> => {
-  const response = await api.post("/login", credentials)
-  return response.data
+export interface RegisterData {
+  name: string
+  email: string
+  password: string
+  password_confirmation: string
+  role?: string
 }
 
-// Déconnexion
-export const logout = async (): Promise<void> => {
-  try {
-    await api.post("/logout")
-  } catch (error) {
-    console.error("Erreur lors de la déconnexion API:", error)
-    // Continuer même si l'API échoue
+export interface ForgotPasswordData {
+  email: string
+}
+
+export interface ResetPasswordData {
+  email: string
+  token: string
+  password: string
+  password_confirmation: string
+}
+
+// Service d'authentification
+export const authService = {
+  // Connexion
+  async login(credentials: LoginCredentials): Promise<LoginResponse> {
+    try {
+      const response = await api.post("/login", credentials)
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Erreur de connexion")
+    }
+  },
+
+  // Inscription
+  async register(data: RegisterData): Promise<LoginResponse> {
+    try {
+      const response = await api.post("/auth/register", data)
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Erreur d'inscription")
+    }
+  },
+
+  // Déconnexion
+  async logout(): Promise<void> {
+    try {
+      await api.post("/auth/logout")
+    } catch (error: any) {
+      // Même en cas d'erreur, on considère que l'utilisateur est déconnecté
+      console.warn("Erreur lors de la déconnexion:", error)
+    }
+  },
+
+  // Récupérer le profil utilisateur
+  async getProfile(): Promise<User> {
+    try {
+      const response = await api.get("/auth/profile")
+      return response.data.data || response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Erreur lors de la récupération du profil")
+    }
+  },
+
+  // Rafraîchir le token
+  async refreshToken(): Promise<LoginResponse> {
+    try {
+      const response = await api.post("/auth/refresh")
+      return response.data
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Erreur lors du rafraîchissement du token")
+    }
+  },
+
+  // Mot de passe oublié
+  async forgotPassword(data: ForgotPasswordData): Promise<void> {
+    try {
+      await api.post("/auth/forgot-password", data)
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Erreur lors de l'envoi de l'email")
+    }
+  },
+
+  // Réinitialiser le mot de passe
+  async resetPassword(data: ResetPasswordData): Promise<void> {
+    try {
+      await api.post("/auth/reset-password", data)
+    } catch (error: any) {
+      throw new Error(error.response?.data?.message || "Erreur lors de la réinitialisation du mot de passe")
+    }
+  },
+
+  // Vérifier si l'utilisateur est authentifié
+  async checkAuth(): Promise<boolean> {
+    try {
+      const response = await api.get("/auth/me")
+      return response.status === 200
+    } catch (error: any) {
+      return false
+    }
   }
-  
-  if (typeof window !== 'undefined') {
-    localStorage.removeItem("gesfarm_token")
-    localStorage.removeItem("gesfarm_user")
-  }
-}
-
-// Obtenir le profil utilisateur
-export const getProfile = async (): Promise<User> => {
-  const response = await api.get("/profile")
-  return response.data.data
-}
-
-// Vérifier si l'utilisateur est connecté
-export const isAuthenticated = (): boolean => {
-  if (typeof window === 'undefined') return false
-  return !!localStorage.getItem("gesfarm_token")
-}
-
-// Obtenir l'utilisateur depuis le localStorage
-export const getCurrentUser = (): User | null => {
-  if (typeof window === 'undefined') return null
-  const userStr = localStorage.getItem("gesfarm_user")
-  return userStr ? JSON.parse(userStr) : null
 }

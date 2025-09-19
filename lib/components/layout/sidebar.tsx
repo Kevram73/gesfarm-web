@@ -42,6 +42,7 @@ const navigation = [
   { name: "Notifications", href: "/notifications", icon: Bell },
   { name: "Profil", href: "/profile", icon: User },
   { name: "Paramètres", href: "/settings", icon: Settings },
+  { name: "Test Auth", href: "/test-auth", icon: User },
 ]
 
 interface SidebarProps {
@@ -74,15 +75,15 @@ export function Sidebar({ className, onClose }: SidebarProps) {
   return (
     <div className={cn("pb-12", className)}>
       {/* Header avec bouton de fermeture mobile */}
-      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
-        <h2 className="text-xl font-bold text-gray-900">
+      <div className="flex items-center justify-between px-4 py-4 border-b border-gray-700">
+        <h2 className="text-xl font-bold text-white">
           GESFARM
         </h2>
         <Button
           variant="ghost"
           size="icon"
           onClick={onClose}
-          className="md:hidden h-8 w-8"
+          className="md:hidden h-8 w-8 text-gray-300 hover:bg-gray-700"
         >
           <X className="h-4 w-4" />
         </Button>
@@ -101,8 +102,8 @@ export function Sidebar({ className, onClose }: SidebarProps) {
                   className={cn(
                     "w-full justify-between text-left font-medium",
                     isActive
-                      ? "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
-                      : "text-gray-700 hover:bg-gray-100"
+                      ? "bg-blue-600 text-white border-r-2 border-blue-400"
+                      : "text-gray-300 hover:bg-gray-700"
                   )}
                   onClick={() => toggleExpanded(item.name)}
                 >
@@ -128,8 +129,8 @@ export function Sidebar({ className, onClose }: SidebarProps) {
                           className={cn(
                             "w-full justify-start text-left text-sm",
                             isChildActive
-                              ? "bg-blue-50 text-blue-700"
-                              : "text-gray-600 hover:bg-gray-50"
+                              ? "bg-blue-600 text-white"
+                              : "text-gray-400 hover:bg-gray-700"
                           )}
                           asChild
                         >
@@ -153,8 +154,8 @@ export function Sidebar({ className, onClose }: SidebarProps) {
                 className={cn(
                   "w-full justify-start text-left font-medium",
                   isActive
-                    ? "bg-blue-50 text-blue-700 border-r-2 border-blue-500"
-                    : "text-gray-700 hover:bg-gray-100"
+                    ? "bg-blue-600 text-white border-r-2 border-blue-400"
+                    : "text-gray-300 hover:bg-gray-700"
                 )}
                 asChild
               >

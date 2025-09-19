@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation"
 import { Button } from "@/lib/components/ui/button"
 import { LogOut } from "lucide-react"
-import { logout } from "@/lib/hooks/use-auth-global"
+import { useAuth } from "@/lib/hooks/use-auth"
 
 interface LogoutButtonProps {
   variant?: "default" | "destructive" | "outline" | "secondary" | "ghost" | "link"
@@ -16,14 +16,14 @@ export function LogoutButton({
   size = "default",
   className = ""
 }: LogoutButtonProps) {
-  const router = useRouter()
+  const { logout } = useAuth()
 
-  const handleLogout = () => {
-    // Déconnecter l'utilisateur
-    logout()
-    
-    // Rediriger vers la page de connexion
-    router.push("/login")
+  const handleLogout = async () => {
+    try {
+      await logout()
+    } catch (error) {
+      console.error("Erreur lors de la déconnexion:", error)
+    }
   }
 
   return (

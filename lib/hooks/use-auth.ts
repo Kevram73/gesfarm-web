@@ -1,70 +1,179 @@
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query"
-import { login, logout, getProfile, type LoginCredentials, type User } from "@/lib/services/auth"
-import { useAuthGlobal, setAuthGlobal } from "./use-auth-global"
+"use client"
 
-// Clés de requête
-export const authKeys = {
-  all: ["auth"] as const,
-  profile: () => [...authKeys.all, "profile"] as const,
-}
+import { useState, useCallback } from "react"
+import { useRouter } from "next/navigation"
+import { authService, LoginCredentials, RegisterData, ForgotPasswordData, ResetPasswordData } from "@/lib/services/auth"
+import { useAuthGlobal, setAuthData } from "@/lib/hooks/use-auth-global"
+import { toast } from "react-hot-toast"
 
-// Hook pour obtenir le profil utilisateur
-export function useProfile() {
-  const isAuthenticated = useAuthGlobal()
-  
-  return useQuery({
-    queryKey: authKeys.profile(),
-    queryFn: getProfile,
-    enabled: isAuthenticated,
-  })
-}
+export function useAuth() {
+  const [isLoading, setIsLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const router = useRouter()
 
-// Hook pour la connexion
-export function useLogin() {
-  const queryClient = useQueryClient()
+  // Connexion
+  const login = useCallback(async (credentials: LoginCredentials) => {
+    setIsLoading(true)
+    setError(null)
 
-  return useMutation({
-    mutationFn: login,
-    onSuccess: (data) => {
-      // Stocker le token et les données utilisateur
-      if (typeof window !== 'undefined') {
-        localStorage.setItem("gesfarm_token", data.data.token)
-        localStorage.setItem("gesfarm_user", JSON.stringify(data.data.user))
-        setAuthGlobal(true)
-      }
+    try {
+      const response = await authService.login(credentials)
       
-      // Invalider et refetch le profil
-      queryClient.invalidateQueries({ queryKey: authKeys.profile() })
-    },
-  })
-}
+      // Sauvegarder les données d'authentification
+      setAuthData({
+        isAuthenticated: true,
+        user: response.data.user,
+        token: response.data.token,
+      })
 
-// Hook pour la déconnexion
-export function useLogout() {
-  const queryClient = useQueryClient()
+      toast.success(response.message || "Connexion réussie !")
+      router.push("/dashboard")
+      
+      return response
+    } catch (error: any) {
+      const errorMessage = error.message || "Erreur de connexion. Veuillez réessayer."
+      setError(errorMessage)
+      toast.error(errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [router])
 
-  return useMutation({
-    mutationFn: logout,
-    onSuccess: () => {
-      // Mettre à jour l'état global
-      setAuthGlobal(false)
-      // Nettoyer le cache
-      queryClient.clear()
-      // Rediriger vers la page de connexion
-      if (typeof window !== 'undefined') {
-        window.location.href = '/login'
-      }
-    },
-    onError: (error) => {
-      console.error("Erreur lors de la déconnexion:", error)
-      // Même en cas d'erreur, nettoyer le localStorage et rediriger
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem("gesfarm_token")
-        localStorage.removeItem("gesfarm_user")
-        setAuthGlobal(false)
-        queryClient.clear()
-        window.location.href = '/login'
-      }
-    },
-  })
+  // Inscription
+  const register = useCallback(async (data: RegisterData) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      const response = await authService.register(data)
+      
+      // Sauvegarder les données d'authentification
+      setAuthData({
+        isAuthenticated: true,
+        user: response.data.user,
+        token: response.data.token,
+      })
+
+      toast.success(response.message || "Inscription réussie !")
+      router.push("/dashboard")
+      
+      return response
+    } catch (error: any) {
+      const errorMessage = error.message || "Erreur d'inscription. Veuillez réessayer."
+      setError(errorMessage)
+      toast.error(errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [router])
+
+  // Déconnexion
+  const logout = useCallback(async () => {
+    setIsLoading(true)
+
+    try {
+      await authService.logout()
+    } catch (error) {
+      console.warn("Erreur lors de la déconnexion:", error)
+    } finally {
+      // Déconnecter l'utilisateur localement même si l'API échoue
+      setAuthData({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+      })
+      
+      toast.success("Déconnexion réussie")
+      router.push("/")
+      setIsLoading(false)
+    }
+  }, [router])
+
+  // Mot de passe oublié
+  const forgotPassword = useCallback(async (data: ForgotPasswordData) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      await authService.forgotPassword(data)
+      toast.success("Email de réinitialisation envoyé !")
+    } catch (error: any) {
+      const errorMessage = error.message || "Erreur lors de l'envoi de l'email."
+      setError(errorMessage)
+      toast.error(errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [])
+
+  // Réinitialiser le mot de passe
+  const resetPassword = useCallback(async (data: ResetPasswordData) => {
+    setIsLoading(true)
+    setError(null)
+
+    try {
+      await authService.resetPassword(data)
+      toast.success("Mot de passe réinitialisé avec succès !")
+      router.push("/")
+    } catch (error: any) {
+      const errorMessage = error.message || "Erreur lors de la réinitialisation du mot de passe."
+      setError(errorMessage)
+      toast.error(errorMessage)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [router])
+
+  // Rafraîchir le token
+  const refreshToken = useCallback(async () => {
+    try {
+      const response = await authService.refreshToken()
+      
+      // Mettre à jour le token
+      setAuthData({
+        isAuthenticated: true,
+        user: response.data.user,
+        token: response.data.token,
+      })
+      
+      return response
+    } catch (error: any) {
+      // Si le refresh échoue, déconnecter l'utilisateur
+      setAuthData({
+        isAuthenticated: false,
+        user: null,
+        token: null,
+      })
+      
+      router.push("/")
+      throw error
+    }
+  }, [router])
+
+  // Vérifier l'authentification
+  const checkAuth = useCallback(async () => {
+    try {
+      const isAuthenticated = await authService.checkAuth()
+      return isAuthenticated
+    } catch (error) {
+      return false
+    }
+  }, [])
+
+  return {
+    login,
+    register,
+    logout,
+    forgotPassword,
+    resetPassword,
+    refreshToken,
+    checkAuth,
+    isLoading,
+    error,
+    clearError: () => setError(null)
+  }
 }

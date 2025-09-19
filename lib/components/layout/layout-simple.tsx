@@ -2,6 +2,13 @@
 
 import { useState } from "react"
 import dynamic from "next/dynamic"
+import { Breadcrumb } from "@/lib/components/ui/breadcrumb"
+import { KeyboardShortcuts } from "@/lib/components/ui/keyboard-shortcuts"
+import { ToastContainer } from "@/lib/components/ui/toast"
+import { LoadingOverlay } from "@/lib/components/ui/loading-overlay"
+import { Footer } from "./footer"
+import { KeyboardShortcutsHelp } from "@/lib/components/ui/keyboard-shortcuts-help"
+import { ErrorBoundary } from "@/lib/components/ui/error-boundary"
 
 // Import dynamique pour éviter les problèmes d'hydratation
 const DynamicSidebar = dynamic(() => import("./sidebar").then(mod => ({ default: mod.Sidebar })), {
@@ -20,13 +27,15 @@ interface LayoutProps {
 
 export function LayoutSimple({ children }: LayoutProps) {
   const [sidebarOpen, setSidebarOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
   const toggleSidebar = () => {
     setSidebarOpen(!sidebarOpen)
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <ErrorBoundary>
+      <div className="min-h-screen bg-gray-900">
       {/* Header */}
       <DynamicHeader onMenuClick={toggleSidebar} />
       
@@ -34,14 +43,14 @@ export function LayoutSimple({ children }: LayoutProps) {
         {/* Sidebar mobile overlay */}
         {sidebarOpen && (
           <div 
-            className="fixed inset-0 z-40 bg-black bg-opacity-50 md:hidden"
+            className="fixed inset-0 z-40 bg-black bg-opacity-70 md:hidden"
             onClick={() => setSidebarOpen(false)}
           />
         )}
 
         {/* Sidebar */}
         <div className={`
-          fixed inset-y-0 left-0 z-50 w-64 bg-white border-r border-gray-200 shadow-lg transform transition-transform duration-300 ease-in-out
+          fixed inset-y-0 left-0 z-50 w-64 bg-gray-800 border-r border-gray-700 shadow-lg transform transition-transform duration-300 ease-in-out
           md:relative md:translate-x-0 md:shadow-none
           ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
@@ -53,12 +62,29 @@ export function LayoutSimple({ children }: LayoutProps) {
         </div>
 
         {/* Main content */}
-        <main className="flex-1 bg-gray-50 min-h-screen">
-          <div className="p-6">
-            {children}
+        <main className="flex-1 bg-gray-900 min-h-screen flex flex-col">
+          <div className="p-6 flex-1">
+            <Breadcrumb />
+            <ErrorBoundary>
+              {children}
+            </ErrorBoundary>
           </div>
+          <Footer />
         </main>
       </div>
-    </div>
+      
+      {/* Keyboard shortcuts */}
+      <KeyboardShortcuts />
+      
+      {/* Toast container */}
+      <ToastContainer />
+      
+      {/* Loading overlay */}
+      <LoadingOverlay isLoading={isLoading} message="Chargement..." />
+      
+      {/* Keyboard shortcuts help */}
+      <KeyboardShortcutsHelp />
+      </div>
+    </ErrorBoundary>
   )
 }

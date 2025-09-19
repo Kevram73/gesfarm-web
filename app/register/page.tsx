@@ -9,18 +9,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/lib/components/ui/ca
 import { Button } from "@/lib/components/ui/button"
 import { Input } from "@/lib/components/ui/input"
 import { Label } from "@/lib/components/ui/label"
-import { Loader2, LogIn, Eye, EyeOff, AlertCircle } from "lucide-react"
+import { Loader2, UserPlus, Eye, EyeOff, AlertCircle, ArrowLeft } from "lucide-react"
 import Link from "next/link"
 
-export default function HomePage() {
+export default function RegisterPage() {
   const [formData, setFormData] = useState({
+    name: "",
     email: "",
-    password: ""
+    password: "",
+    password_confirmation: ""
   })
   const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   
   const isAuthenticated = useAuthGlobal()
-  const { login, isLoading, error, clearError } = useAuth()
+  const { register, isLoading, error, clearError } = useAuth()
   const router = useRouter()
 
   // Rediriger si déjà authentifié
@@ -43,11 +46,17 @@ export default function HomePage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Validation côté client
+    if (formData.password !== formData.password_confirmation) {
+      clearError()
+      return
+    }
+    
     try {
-      await login(formData)
+      await register(formData)
     } catch (error) {
       // L'erreur est déjà gérée dans le hook useAuth
-      console.error("Erreur de connexion:", error)
+      console.error("Erreur d'inscription:", error)
     }
   }
 
@@ -55,12 +64,12 @@ export default function HomePage() {
   if (isAuthenticated) {
     return (
       <LayoutMinimal>
-      <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-screen">
           <div className="text-center">
             <Loader2 className="h-8 w-8 animate-spin mx-auto mb-4" />
             <p className="text-gray-600">Redirection vers le dashboard...</p>
           </div>
-      </div>
+        </div>
       </LayoutMinimal>
     )
   }
@@ -78,15 +87,15 @@ export default function HomePage() {
             <p className="text-gray-300 mt-2">Gestion d'exploitation agropastorale</p>
           </div>
 
-          {/* Formulaire de connexion */}
+          {/* Formulaire d'inscription */}
           <Card className="shadow-xl border-0 bg-gray-800">
             <CardHeader className="text-center pb-4">
               <CardTitle className="text-2xl font-semibold text-white flex items-center justify-center">
-                <LogIn className="mr-2 h-6 w-6 text-blue-400" />
-                Connexion
+                <UserPlus className="mr-2 h-6 w-6 text-blue-400" />
+                Créer un compte
               </CardTitle>
               <p className="text-gray-300 text-sm">
-                Connectez-vous à votre compte pour accéder au système
+                Rejoignez GESFARM pour gérer votre exploitation
               </p>
             </CardHeader>
             
@@ -99,6 +108,24 @@ export default function HomePage() {
                     <p className="text-sm text-red-600">{error}</p>
                   </div>
                 )}
+
+                {/* Nom */}
+                <div className="space-y-2">
+                  <Label htmlFor="name" className="text-sm font-medium text-gray-300">
+                    Nom complet
+                  </Label>
+                  <Input
+                    id="name"
+                    name="name"
+                    type="text"
+                    placeholder="Votre nom complet"
+                    required
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="h-11 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                    disabled={isLoading}
+                  />
+                </div>
 
                 {/* Email */}
                 <div className="space-y-2">
@@ -151,8 +178,42 @@ export default function HomePage() {
                     </Button>
                   </div>
                 </div>
+
+                {/* Confirmation du mot de passe */}
+                <div className="space-y-2">
+                  <Label htmlFor="password_confirmation" className="text-sm font-medium text-gray-300">
+                    Confirmer le mot de passe
+                  </Label>
+                  <div className="relative">
+                    <Input
+                      id="password_confirmation"
+                      name="password_confirmation"
+                      type={showConfirmPassword ? "text" : "password"}
+                      placeholder="••••••••"
+                      required
+                      value={formData.password_confirmation}
+                      onChange={handleInputChange}
+                      className="h-11 pr-10 bg-gray-700 border-gray-600 text-white placeholder:text-gray-400 focus:border-blue-500 focus:ring-blue-500"
+                      disabled={isLoading}
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className="absolute right-0 top-0 h-11 w-10 hover:bg-transparent text-gray-400"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      disabled={isLoading}
+                    >
+                      {showConfirmPassword ? (
+                        <EyeOff className="h-4 w-4" />
+                      ) : (
+                        <Eye className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
                 
-                {/* Bouton de connexion */}
+                {/* Bouton d'inscription */}
                 <Button 
                   type="submit" 
                   className="w-full h-11 bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-medium"
@@ -161,34 +222,26 @@ export default function HomePage() {
                   {isLoading ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Connexion en cours...
+                      Création du compte...
                     </>
                   ) : (
                     <>
-                      <LogIn className="mr-2 h-4 w-4" />
-                      Se connecter
+                      <UserPlus className="mr-2 h-4 w-4" />
+                      Créer mon compte
                     </>
                   )}
                 </Button>
               </form>
               
               {/* Liens utiles */}
-              <div className="mt-6 text-center space-y-2">
+              <div className="mt-6 text-center">
                 <p className="text-sm text-gray-300">
-                  Pas encore de compte ?{" "}
+                  Déjà un compte ?{" "}
                   <Link
-                    href="/register"
+                    href="/"
                     className="text-blue-400 hover:text-blue-300 font-medium"
                   >
-                    Créer un compte
-                  </Link>
-                </p>
-                <p className="text-sm text-gray-300">
-                  <Link
-                    href="/forgot-password"
-                    className="text-blue-400 hover:text-blue-300 font-medium"
-                  >
-                    Mot de passe oublié ?
+                    Se connecter
                   </Link>
                 </p>
               </div>
