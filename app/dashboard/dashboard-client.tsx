@@ -3,8 +3,6 @@
 import { useState, useEffect } from "react"
 import { AuthGuard } from "@/lib/components/auth/auth-guard"
 import { LayoutSimple } from "@/lib/components/layout/layout-simple"
-import { MetricCard } from "@/lib/components/dashboard"
-import { useDashboardKPIs, useStockAlerts, useFinancialSummary, useFinancialAlerts } from "@/lib/hooks/use-api-data"
 import { 
   Users, 
   DollarSign, 
@@ -20,19 +18,53 @@ import {
 
 export default function DashboardClient() {
   const [mounted, setMounted] = useState(false)
+  const [dashboardData, setDashboardData] = useState(null)
+  const [alertsData, setAlertsData] = useState([])
+  const [financialData, setFinancialData] = useState(null)
+  const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
     setMounted(true)
+    
+    // Charger les données seulement côté client
+    const loadData = async () => {
+      try {
+        setIsLoading(true)
+        
+        // Données par défaut pour éviter les boucles
+        const defaultDashboardData = {
+          total_poultry: 0,
+          total_cattle: 0,
+          total_crops: 0,
+          total_zones: 0,
+          production_summary: {
+            eggs_today: 0,
+            milk_today: 0
+          }
+        }
+        
+        const defaultAlertsData = []
+        const defaultFinancialData = {
+          monthly_income: 0,
+          monthly_expenses: 0,
+          monthly_profit: 0
+        }
+        
+        setDashboardData(defaultDashboardData)
+        setAlertsData(defaultAlertsData)
+        setFinancialData(defaultFinancialData)
+        setIsLoading(false)
+      } catch (error) {
+        console.error("Erreur lors du chargement des données:", error)
+        setIsLoading(false)
+      }
+    }
+    
+    loadData()
   }, [])
 
-  // Les hooks retournent maintenant directement les données sans erreur
-  const { data: dashboardData, isLoading: kpisLoading, error: kpisError } = useDashboardKPIs()
-  const { data: alertsData, isLoading: stockAlertsLoading, error: stockAlertsError } = useStockAlerts()
-  const { data: financialData } = useFinancialSummary({ period: 'month' })
-  const { data: financialAlerts } = useFinancialAlerts()
-
   // Ne pas rendre le contenu jusqu'à ce que le composant soit monté côté client
-  if (!mounted) {
+  if (!mounted || isLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-900">
         <div className="text-center">
