@@ -19,6 +19,14 @@ const nextConfig = {
   generateEtags: false,
   
   // Configuration CORS pour les requêtes API
+  async rewrites() {
+    return [
+      {
+        source: '/api/:path*',
+        destination: 'https://farm.pressingelegance.com/api/:path*',
+      },
+    ]
+  },
   async headers() {
     return [
       {
