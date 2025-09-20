@@ -5,7 +5,7 @@ import { CorsError } from '@/lib/components/ui/cors-error'
 import { useCorsError } from '@/lib/hooks/use-cors-error'
 import { Button } from '@/lib/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/lib/components/ui/card'
-import { api } from '@/lib/services/api'
+import api from '@/lib/services/api'
 
 export default function TestCorsPage() {
   const { hasError, error, isCorsError, message, handleError, clearError, retry } = useCorsError()
@@ -191,7 +191,7 @@ export default function TestCorsPage() {
         </CardHeader>
         <CardContent>
           <div className="space-y-2 text-sm">
-            <p><strong>API Base URL:</strong> http://62.171.181.213:8000/api</p>
+            <p><strong>API Base URL:</strong> https://farm.pressingelegance.com/api</p>
             <p><strong>Origin autorisé:</strong> * (tous les domaines)</p>
             <p><strong>Méthodes autorisées:</strong> GET, POST, PUT, DELETE, OPTIONS, PATCH</p>
             <p><strong>Headers autorisés:</strong> Content-Type, Authorization, X-Requested-With, Accept, Origin</p>

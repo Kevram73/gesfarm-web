@@ -6,7 +6,7 @@
 const axios = require('axios');
 
 // Configuration de test
-const API_BASE_URL = 'http://62.171.181.213:8000/api';
+const API_BASE_URL = 'https://farm.pressingelegance.com/api';
 const TEST_ENDPOINTS = [
   '/auth/me',
   '/dashboard/stats',
