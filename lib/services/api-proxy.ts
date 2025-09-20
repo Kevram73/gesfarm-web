@@ -1,18 +1,20 @@
 import axios from "axios"
 import { handleCorsError, isCorsError, isTimeoutError } from "../utils/cors"
 
-// Configuration de base pour axios - API GESFARM Laravel
-const api = axios.create({
-  baseURL: "https://farm.pressingelegance.com/api",
+// Configuration pour utiliser le proxy Next.js au lieu de l'API directe
+const apiProxy = axios.create({
+  baseURL: "/api/proxy", // Utilise le proxy Next.js
   timeout: 15000,
   headers: {
+    "Content-Type": "application/json",
+    "Accept": "application/json",
+    "X-Requested-With": "XMLHttpRequest",
   },
-  withCredentials: true, // Important pour Laravel Sanctum
-  // Configuration CORS pour les requêtes cross-origin
+  withCredentials: true,
 })
 
 // Intercepteur pour les requêtes
-api.interceptors.request.use(
+apiProxy.interceptors.request.use(
   (config) => {
     // Ajouter le token d'authentification si disponible
     if (typeof window !== 'undefined') {
@@ -36,7 +38,7 @@ api.interceptors.request.use(
 )
 
 // Intercepteur pour les réponses
-api.interceptors.response.use(
+apiProxy.interceptors.response.use(
   (response) => {
     return response
   },
@@ -71,4 +73,4 @@ api.interceptors.response.use(
   }
 )
 
-export default api
+export default apiProxy
