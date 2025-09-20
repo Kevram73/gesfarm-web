@@ -1,4 +1,5 @@
 import api from "./api"
+import apiSmart from "./api-smart"
 
 export interface LoginCredentials {
   email: string
@@ -44,19 +45,8 @@ export interface ResetPasswordData {
 
 // Fonction pour obtenir l'API appropriée
 function getApi() {
-  // Utiliser le proxy par défaut pour éviter les problèmes CORS
-  if (typeof window !== 'undefined') {
-    const savedMode = localStorage.getItem('gesfarm_api_mode')
-    
-    // Si l'utilisateur a explicitement choisi l'API directe, l'utiliser
-    if (savedMode === 'direct') {
-      return api
-    }
-    
-    // Sinon, utiliser le proxy par défaut
-    return api
-  }
-  return api
+  // Utiliser l'API intelligente qui choisit automatiquement le bon mode
+  return apiSmart
 }
 
 // Service d'authentification

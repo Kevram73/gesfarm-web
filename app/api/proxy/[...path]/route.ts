@@ -2,27 +2,45 @@ import { NextRequest, NextResponse } from 'next/server'
 
 const API_BASE_URL = 'https://farm.pressingelegance.com/api'
 
-export async function GET(request: NextRequest) {
-  return handleRequest(request, 'GET')
+export async function GET(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, 'GET', params.path)
 }
 
-export async function POST(request: NextRequest) {
-  return handleRequest(request, 'POST')
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, 'POST', params.path)
 }
 
-export async function PUT(request: NextRequest) {
-  return handleRequest(request, 'PUT')
+export async function PUT(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, 'PUT', params.path)
 }
 
-export async function DELETE(request: NextRequest) {
-  return handleRequest(request, 'DELETE')
+export async function DELETE(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, 'DELETE', params.path)
 }
 
-export async function PATCH(request: NextRequest) {
-  return handleRequest(request, 'PATCH')
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
+  return handleRequest(request, 'PATCH', params.path)
 }
 
-export async function OPTIONS(request: NextRequest) {
+export async function OPTIONS(
+  request: NextRequest,
+  { params }: { params: { path: string[] } }
+) {
   // Gérer les requêtes preflight
   return new NextResponse(null, {
     status: 200,
@@ -36,12 +54,17 @@ export async function OPTIONS(request: NextRequest) {
   })
 }
 
-async function handleRequest(request: NextRequest, method: string) {
+async function handleRequest(
+  request: NextRequest, 
+  method: string, 
+  pathSegments: string[]
+) {
   try {
-    // Extraire le chemin de l'URL
-    const url = new URL(request.url)
-    const path = url.pathname.replace('/api/proxy', '')
+    // Reconstruire le chemin
+    const path = '/' + pathSegments.join('/')
     const targetUrl = `${API_BASE_URL}${path}`
+    
+    console.log(`Proxy: ${method} ${targetUrl}`)
     
     // Préparer les headers
     const headers: Record<string, string> = {
@@ -62,6 +85,7 @@ async function handleRequest(request: NextRequest, method: string) {
       try {
         const requestBody = await request.text()
         body = requestBody
+        console.log(`Proxy body: ${body}`)
       } catch (error) {
         console.error('Erreur lors de la lecture du body:', error)
       }
@@ -75,6 +99,8 @@ async function handleRequest(request: NextRequest, method: string) {
       // Ajouter les credentials si nécessaire
       credentials: 'include',
     })
+    
+    console.log(`Proxy response: ${response.status} ${response.statusText}`)
     
     // Lire la réponse
     const responseData = await response.text()
