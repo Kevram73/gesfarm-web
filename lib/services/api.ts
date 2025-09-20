@@ -3,7 +3,7 @@ import { handleCorsError, isCorsError } from "../utils/cors"
 
 // Configuration de base pour axios - API GESFARM Laravel
 const api = axios.create({
-  baseURL: "http://62.171.181.213:8000/api",
+  baseURL: "https://farm.pressingelegance.com/api",
   timeout: 15000,
   headers: {
     "Content-Type": "application/json",
