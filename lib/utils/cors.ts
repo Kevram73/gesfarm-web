@@ -14,13 +14,29 @@ export interface CorsError extends Error {
  * Vérifie si une erreur est liée à CORS
  */
 export function isCorsError(error: any): boolean {
+  // Ne pas considérer les timeouts comme des erreurs CORS
+  if (error?.code === 'ECONNABORTED' || error?.message?.includes('timeout')) {
+    return false
+  }
+  
   return (
     error?.code === 'ERR_NETWORK' ||
     error?.message?.includes('CORS') ||
     error?.message?.includes('cross-origin') ||
     error?.message?.includes('Access-Control-Allow-Origin') ||
     error?.response?.status === 0 ||
-    !error?.response
+    (!error?.response && error?.code !== 'ECONNABORTED')
+  )
+}
+
+/**
+ * Vérifie si une erreur est un timeout
+ */
+export function isTimeoutError(error: any): boolean {
+  return (
+    error?.code === 'ECONNABORTED' ||
+    error?.message?.includes('timeout') ||
+    error?.message?.includes('exceeded')
   )
 }
 
@@ -28,6 +44,10 @@ export function isCorsError(error: any): boolean {
  * Gère les erreurs CORS de manière appropriée
  */
 export function handleCorsError(error: any): string {
+  if (isTimeoutError(error)) {
+    return 'Erreur de connexion: Le serveur met trop de temps à répondre. Vérifiez votre connexion internet et réessayez.'
+  }
+  
   if (isCorsError(error)) {
     return 'Erreur de connexion: Problème de configuration CORS. Veuillez vérifier que le serveur API autorise les requêtes depuis ce domaine.'
   }

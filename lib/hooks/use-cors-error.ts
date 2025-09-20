@@ -1,12 +1,13 @@
 "use client"
 
 import { useState, useCallback } from 'react'
-import { isCorsError, handleCorsError } from '../utils/cors'
+import { isCorsError, isTimeoutError, handleCorsError } from '../utils/cors'
 
 export interface CorsErrorState {
   hasError: boolean
   error: any | null
   isCorsError: boolean
+  isTimeoutError: boolean
   message: string
 }
 
@@ -15,24 +16,28 @@ export function useCorsError() {
     hasError: false,
     error: null,
     isCorsError: false,
+    isTimeoutError: false,
     message: '',
   })
 
   const handleError = useCallback((error: any) => {
     const corsError = isCorsError(error)
+    const timeoutError = isTimeoutError(error)
     const message = handleCorsError(error)
     
     setErrorState({
       hasError: true,
       error,
       isCorsError: corsError,
+      isTimeoutError: timeoutError,
       message,
     })
     
     // Log l'erreur pour le debugging
-    console.error('Erreur CORS détectée:', {
+    console.error('Erreur détectée:', {
       error,
       isCorsError: corsError,
+      isTimeoutError: timeoutError,
       message,
     })
   }, [])
@@ -42,6 +47,7 @@ export function useCorsError() {
       hasError: false,
       error: null,
       isCorsError: false,
+      isTimeoutError: false,
       message: '',
     })
   }, [])

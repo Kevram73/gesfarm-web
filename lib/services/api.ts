@@ -1,5 +1,5 @@
 import axios from "axios"
-import { handleCorsError, isCorsError } from "../utils/cors"
+import { handleCorsError, isCorsError, isTimeoutError } from "../utils/cors"
 
 // Configuration de base pour axios - API GESFARM Laravel
 const api = axios.create({
@@ -48,10 +48,20 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
+    // Gérer les timeouts
+    if (isTimeoutError(error)) {
+      console.error("Timeout détecté:", error)
+      error.timeoutError = true
+      error.message = handleCorsError(error)
+    }
     // Gérer les erreurs CORS
-    if (isCorsError(error)) {
+    else if (isCorsError(error)) {
       console.error("Erreur CORS détectée:", error)
       error.corsError = true
+      error.message = handleCorsError(error)
+    }
+    // Gérer les autres erreurs
+    else {
       error.message = handleCorsError(error)
     }
     
