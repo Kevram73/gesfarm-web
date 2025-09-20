@@ -1,4 +1,5 @@
 import axios from "axios"
+import { handleCorsError, isCorsError } from "../utils/cors"
 
 // Configuration de base pour axios - API GESFARM Laravel
 const api = axios.create({
@@ -8,8 +9,13 @@ const api = axios.create({
     "Content-Type": "application/json",
     "Accept": "application/json",
     "X-Requested-With": "XMLHttpRequest",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS, PATCH",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With, Accept, Origin",
   },
   withCredentials: true, // Important pour Laravel Sanctum
+  // Configuration CORS pour les requêtes cross-origin
+  crossDomain: true,
 })
 
 // Intercepteur pour les requêtes
@@ -42,6 +48,13 @@ api.interceptors.response.use(
     return response
   },
   (error) => {
+    // Gérer les erreurs CORS
+    if (isCorsError(error)) {
+      console.error("Erreur CORS détectée:", error)
+      error.corsError = true
+      error.message = handleCorsError(error)
+    }
+    
     // Gérer les erreurs globalement
     if (error.response?.status === 401) {
       // Rediriger vers la page de connexion
@@ -50,6 +63,7 @@ api.interceptors.response.use(
         window.location.href = "/"
       }
     }
+    
     return Promise.reject(error)
   }
 )

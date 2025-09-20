@@ -17,6 +17,34 @@ const nextConfig = {
   output: 'standalone',
   // Désactiver la génération de pages d'erreur statiques
   generateEtags: false,
+  
+  // Configuration CORS pour les requêtes API
+  async headers() {
+    return [
+      {
+        // Appliquer ces headers à toutes les routes
+        source: '/(.*)',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*', // En production, spécifiez votre domaine exact
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET, POST, PUT, DELETE, OPTIONS, PATCH',
+          },
+          {
+            key: 'Access-Control-Allow-Headers',
+            value: 'Content-Type, Authorization, X-Requested-With, Accept, Origin',
+          },
+          {
+            key: 'Access-Control-Allow-Credentials',
+            value: 'true',
+          },
+        ],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig
